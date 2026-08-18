@@ -65,6 +65,8 @@
 | 何を増やすゲームか | |
 | プレイヤーが直接できることは何か | |
 | プレイヤーができないことは何か | |
+| **画面は何種類あるか** | |
+| **数値で調整するものはあるか** | |
 | 何で作るか | |
 
 ## 配布の規則
@@ -77,8 +79,8 @@
 | 新しいものが順に出る | **03-beat-chart.md** |
 | 尽きるものがある | **04-arc.md** |
 | 終わりがある | **05-endgame.md** |
-| 画面が複数ある | 06-screens.md |
-| 数値がある | 07-tunables.md |
+| 画面が2種類以上 | 06-screens.md |
+| 数値で調整するものがある | 07-tunables.md |
 
 > **テトリスのようなゲームなら 01 と 08 だけでよい。**
 > 全部を書かせる形にすると、短いゲームで邪魔になる。
@@ -361,17 +363,24 @@ function hours(t) {
   if (/分/.test(t) && !/時間/.test(t)) return n / 60;
   return n;
 }
+function num(t) {
+  if (!t) return null;
+  const m = t.match(/\d+(\.\d+)?/);
+  return m ? parseFloat(m[0]) : null;
+}
 function gates() {
   const a = answers00();
   const find = k => { for (const q in a) if (q.includes(k)) return a[q]; return ''; };
   const h = hours(find('通しで何時間'));
+  const scr = num(find('画面は何種類'));
   return {
     '00': true, '01': true, '08': true,
     '02': h === null ? null : h > 1,
     '03': find('新しいものが順に') ? yes(find('新しいものが順に')) : null,
     '04': find('尽きるものは') ? yes(find('尽きるものは')) : null,
     '05': find('終わりはあるか') ? yes(find('終わりはあるか')) : null,
-    '06': null, '07': null,      // 00 に判定できる問いが無い
+    '06': scr === null ? null : scr >= 2,
+    '07': find('数値で調整するもの') ? yes(find('数値で調整するもの')) : null,
   };
 }
 

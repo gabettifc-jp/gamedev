@@ -38,8 +38,8 @@
 | `03-beat-chart.md` | 新しいものが順に出る |
 | `04-arc.md` | 尽きるものがある |
 | `05-endgame.md` | 終わりがある |
-| `06-screens.md` | 画面が複数ある |
-| `07-tunables.md` | 数値がある |
+| `06-screens.md` | 画面が2種類以上 |
+| `07-tunables.md` | 数値で調整するものがある |
 
 `spec.md` / `checklist.md` / `prompt.md` / `check.md` は、これまでどおり使う。
 シートは仕様書を書く前の工程で、`spec.md` はその結果を書き留めるところ。
