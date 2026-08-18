@@ -18,6 +18,7 @@
 | `lessons.md` | 一本終えるたびの当たり外れ |
 | `templates/` | ゲーム側へ写すひな形 |
 | `templates/sheets/` | 段階3で埋めるシート。`00-kihon.md` から始める |
+| `tools/` | シートを埋める道具（`sheets.html`。ブラウザで開く） |
 | `references/` | 参照元のゲームの調査結果 |
 
 ## 新しいゲームを始めるときの手順
