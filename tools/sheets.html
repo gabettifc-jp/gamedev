@@ -1,0 +1,922 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>シートを埋める</title>
+<style>
+  :root{ --ink:#1d2529; --dim:#6b7c86; --line:#c8d2d8; --bg:#f4f6f7; --panel:#fff;
+         --empty:#fdf6d8; --off:#9aa8b0; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",sans-serif;
+    font-size:14px;line-height:1.6}
+  #wrap{display:flex;align-items:flex-start;gap:0;min-height:100vh}
+  #side{width:270px;flex:0 0 270px;background:var(--panel);border-right:1px solid var(--line);
+    padding:10px;position:sticky;top:0;max-height:100vh;overflow:auto}
+  #main{flex:1 1 auto;padding:16px 22px;max-width:900px}
+  h1{font-size:16px;margin:0 0 10px}
+  .item{display:flex;justify-content:space-between;gap:6px;padding:6px 8px;border-radius:4px;
+    cursor:pointer;border:1px solid transparent}
+  .item:hover{background:#eef3f6}
+  .item.sel{background:#e2ecf2;border-color:var(--line)}
+  .item.off{color:var(--off)}
+  .item .n{color:var(--dim);font-variant-numeric:tabular-nums;font-size:12px;white-space:nowrap}
+  .item.done .n{color:#2e7d54}
+  table{border-collapse:collapse;width:100%;margin:10px 0;background:var(--panel)}
+  th,td{border:1px solid var(--line);padding:5px 7px;vertical-align:top;text-align:left}
+  th{background:#e8eef1;font-weight:600;font-size:13px}
+  td.fixed{background:#fafcfd}
+  textarea{width:100%;min-height:26px;border:0;background:var(--empty);font:inherit;
+    resize:vertical;padding:2px 3px;color:inherit}
+  textarea.filled{background:transparent}
+  textarea:focus{outline:2px solid #7aa7c0;background:#fff}
+  blockquote{margin:8px 0;padding:6px 10px;border-left:3px solid var(--line);background:#eef3f6;color:#3a4a52}
+  h2{font-size:15px;margin:16px 0 4px}
+  h3{font-size:14px;margin:12px 0 4px}
+  button{font:inherit;font-size:12px;padding:4px 9px;border:1px solid var(--line);
+    background:#fff;border-radius:4px;cursor:pointer}
+  button:hover{background:#eef3f6}
+  .bar{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+  textarea.io{width:100%;height:170px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;
+    background:#fff;border:1px solid var(--line);border-radius:4px;padding:6px;resize:vertical}
+  .hint{color:var(--dim);font-size:12px;margin:6px 0}
+  .sec{border-top:1px solid var(--line);margin-top:14px;padding-top:10px}
+  code{background:#eef3f6;padding:0 3px;border-radius:3px;font-size:12px}
+  ul{margin:6px 0;padding-left:20px}
+  .fig{border:1px solid var(--line);background:var(--panel);border-radius:4px;padding:8px 10px;margin:14px 0}
+  .fig h4{margin:0 0 6px;font-size:13px}
+  .fig svg{display:block;max-width:100%}
+  .note{font-size:12px;color:var(--dim);margin:4px 0}
+  .warn{font-size:12px;color:#a4462f;margin:2px 0}
+  .ok{font-size:12px;color:#2e7d54;margin:2px 0}
+  #fit{margin-top:10px;border-top:1px solid var(--line);padding-top:8px}
+  #fit .r{font-size:12px;margin:5px 0;padding:4px 6px;border-radius:3px;background:#eef3f6}
+  #fit .r.bad{background:#fbe9e5;color:#8a3a26}
+  #fit .r.good{background:#e8f4ec;color:#2e7d54}
+  #fit .r.na{background:#f0f0ef;color:#6b7c86}
+  #fit b{font-weight:600}
+</style>
+</head>
+<body>
+<script type="text/plain" data-sheet="00-kihon.md">
+# 00 基本
+
+> **このシートを最初に埋める。**
+> 答えによって、次に配られるシートが決まる。
+> **空欄のまま先へ進まないこと。**
+
+| 問い | 答え |
+|---|---|
+| 面白さの核（一文で） | |
+| **通しで何時間遊ぶ想定か** | |
+| **一回の繰り返しは何秒か** | |
+| **終わりはあるか。あるなら何をしたら終わりか** | |
+| **新しいものが順に出てくるか** | |
+| **尽きるものはあるか**（回数が決まっているもの） | |
+| 何を増やすゲームか | |
+| プレイヤーが直接できることは何か | |
+| プレイヤーができないことは何か | |
+| **画面は何種類あるか** | |
+| **数値で調整するものはあるか** | |
+| 何で作るか | |
+
+## 配布の規則
+
+| 埋めた答え | 配られるシート |
+|---|---|
+| **常に** | 01-core-loop.md |
+| **常に** | 08-input.md |
+| 通しが1時間を超える | **02-meta-loop.md** |
+| 新しいものが順に出る | **03-beat-chart.md** |
+| 尽きるものがある | **04-arc.md** |
+| 終わりがある | **05-endgame.md** |
+| 画面が2種類以上 | 06-screens.md |
+| 数値で調整するものがある | 07-tunables.md |
+
+> **テトリスのようなゲームなら 01 と 08 だけでよい。**
+> 全部を書かせる形にすると、短いゲームで邪魔になる。
+</script>
+<script type="text/plain" data-sheet="01-core-loop.md">
+# 01 コアループ
+
+**どのゲームにも要る。**秒から分の単位で繰り返すもの。
+
+| 問い | 答え |
+|---|---|
+| 一回のループで、プレイヤーは何をするか | |
+| 一回は何秒か | |
+| 一回ごとに何がもらえるか | |
+| もらったものを何に使うか | |
+| **一回ごとに判断はあるか。何を賭けるか** | |
+| 一回ごとに結果が変わるか。何で変わるか | |
+| **これを何百回繰り返しても飽きないと言える理由** | |
+
+> **周期が長すぎると飽き、短すぎると単調になる。**
+> 「最も時間を費やす30秒から1分は、本当に楽しいか」から始める。
+</script>
+<script type="text/plain" data-sheet="02-meta-loop.md">
+# 02 メタループ
+
+**コアループの外側にある「なぜ繰り返すのか」の理由。何層あってもよい。**
+
+各層について、次を埋める。**層の数だけ繰り返す。**
+
+## 層（　　　　　）
+
+| 問い | 答え |
+|---|---|
+| この層で、プレイヤーは何を目指すか | |
+| **一周（この層が一巡）は何分か** | |
+| 一巡すると何が変わるか | |
+| **この層は何回巡ると尽きるか。尽きないか** | |
+| 尽きるなら、尽きた後は何の層が動くか | |
+
+## 層（　　　　　）
+
+| 問い | 答え |
+|---|---|
+| この層で、プレイヤーは何を目指すか | |
+| **一周（この層が一巡）は何分か** | |
+| 一巡すると何が変わるか | |
+| **この層は何回巡ると尽きるか。尽きないか** | |
+| 尽きるなら、尽きた後は何の層が動くか | |
+
+## 層の一覧
+
+| 層 | 目指すもの | 一巡の長さ | 何回で尽きるか |
+|---|---|---|---|
+| コア | | 秒 | 尽きない |
+| メタ1 | | 分 | |
+| メタ2 | | 分〜時間 | |
+
+> **通しの時間を、層の長さと回数で割り算して確かめること。**
+> 合わないなら、どこかの層が足りないか、多すぎる。
+</script>
+<script type="text/plain" data-sheet="03-beat-chart.md">
+# 03 ビートチャート
+
+**一枚の表で、通し全体の構造を見る。**空欄が目に見えるのが目的。
+
+避けるのは三つ。**詰め込みすぎ／明らかな空白／同じ組み合わせの繰り返し。**
+
+時間の区切りを縦に置き、次を横に並べる。区切りは通しの長さに合わせて決める。
+
+| 時点 | プレイヤーは何をしている | いまの目標 | 何が新しい | 密度 | 強度（0〜5） | 種類 |
+|---|---|---|---|---|---|---|
+| 0分（開始直後） | | | | | | |
+| 最初の山 | | | | | | |
+| 通しの1／4 | | | | | | |
+| 通しの半分 | | | | | | |
+| 通しの3／4 | | | | | | |
+| 終盤 | | | | | | |
+| 最後 | | | | | | |
+
+## 種類（色分け）
+
+**種類は、ゲームごとに自分で決めるもの。**
+下の四つは Valve の分け方を既定値として置いてあるだけなので、書き換えてよい。
+
+| 種類 | 色 |
+|---|---|
+| 探索 | |
+| 戦闘 | |
+| 会話や演出 | |
+| パズル | |
+
+> **強度は難易度ではない。**
+> Journey では、操作の無いカットシーンでも感情の強度は高いとされている。
+> **サスペンス、プレイヤーの賭けの大きさ、引き込まれ具合**と読むほうが近い。
+> 数字の根拠は勘でよい。厳密な科学ではないと、元の資料にも明記されている。
+
+> **「何が新しい」の列が空いている行が、退屈になる時間帯。**
+> **「いまの目標」の列が空いている行は、プレイヤーが何をすべきか分からない時間帯。**
+> fishing-inc では、この二列の後半が空だった。
+</script>
+<script type="text/plain" data-sheet="04-arc.md">
+# 04 アーク
+
+**ループとアークは違う。**
+
+- **ループ**は何回繰り返しても面白い（積む、跳ぶ、撃つ）
+- **アーク**は繰り返せない（物語を読む、新しい場所が開く、一度きりの解放）
+
+**アークをループの代わりに置くと、尽きた瞬間に穴が空く。**
+
+尽きるものを一つずつ書く。
+
+| 尽きるもの | 何回で尽きるか | 尽きるのは通しのどのあたりか | **尽きた後に何が始まるか** |
+|---|---|---|---|
+| | | | |
+| | | | |
+| | | | |
+
+> **右端の列が空のまま実装すると、そこから先が退屈になる。**
+> fishing-inc の「移動手段を買う」は8回で尽き、その後が空だった。
+</script>
+<script type="text/plain" data-sheet="05-endgame.md">
+# 05 終盤
+
+| 問い | 答え |
+|---|---|
+| 最後の目標は何か | |
+| **それが見えるのはいつからか** | |
+| 最後の目標に向かう時間はどれくらいか | |
+| その時間、プレイヤーは何をしているか | |
+| **終盤にだけある楽しみは何か** | |
+| 終わったあと、何かあるか（無くてもよい） | |
+</script>
+<script type="text/plain" data-sheet="06-screens.md">
+# 06 画面
+
+flow.md 段階3の **B. 画面の設計** の問いを、そのまま表にしたもの。内容は変えていない。
+
+| 問い | 答え |
+|---|---|
+| **画面は何種類あるか。**それぞれ何をする画面か | |
+| **画面はどう行き来するか。**どこからどこへ、何を押すと移るか | |
+| **一番よく見る画面には、何がどこに置いてあるか。**上・下・左・右・中央に、それぞれ何があるか | |
+| 盤面があるなら、**一マスの大きさと、縦横のマス数** | |
+| キャラや物の大きさは、マスに対して何倍か | |
+| **常に見えていなければならない数値は何か**（所持金、残量、進み具合） | |
+| 色は何段階使うか。何で色が変わるか | |
+| 参考にする画面があるなら、**実物を見て数字で書く**（「これを見て似せて」ではなく） | |
+</script>
+<script type="text/plain" data-sheet="07-tunables.md">
+# 07 つまみと初期値
+
+flow.md 段階3の **D. 初期値** の問いを、そのまま表にしたもの。内容は変えていない。
+
+| 問い | 答え |
+|---|---|
+| **すべてのつまみの仮の値。**「テストで決める」としても、動かすための初期値は要る | |
+
+## つまみの一覧
+
+| つまみ | 初期値 | 伸び率 | 何が変わるか |
+|---|---|---|---|
+| | | | |
+| | | | |
+| | | | |
+
+> **指数で伸びるものは「伸び率」も入れる。**`値 = 初期値 × 伸び率 ^ 段数`。
+> 伸び率を入れた行は、下の図に線として出る。
+
+> 決めていない場合、実装する側が勝手に決める。それは「勝手に決めた点」として
+> 上がってくるので後追いで直せるが、**最初から書いておくほうが速い**
+</script>
+<script type="text/plain" data-sheet="08-input.md">
+# 08 入出力
+
+flow.md 段階3の **C. 入出力の設計** の問いを、そのまま表にしたもの。内容は変えていない。
+
+| 問い | 答え |
+|---|---|
+| **入力は何種類あるか**（押す、長押し、ドラッグ、キー） | |
+| **何を押すと何が起きるか。**操作の一覧 | |
+| 待ち時間や演出のあいだ、操作を受け付けるか | |
+| **絶対に止めてはいけない操作はどれか**（頻度の高いものは止めると累積で効く） | |
+| 間違えて押したときに取り返しはつくか | |
+</script>
+
+<div id="wrap">
+  <div id="side">
+    <h1>シート</h1>
+    <div id="list"></div>
+    <div id="fit"></div>
+    <div class="sec">
+      <div id="srv" class="hint"></div>
+      <div class="bar">
+        <button id="bExport">全部を書き出す</button>
+        <button id="bExport1">この1枚を書き出す</button>
+      </div>
+      <div class="bar">
+        <button id="bPaste">貼り付けて読み込む</button>
+        <button id="bClear">この1枚を空にする</button>
+      </div>
+      <textarea class="io" id="io" placeholder="ここに markdown を貼って「貼り付けて読み込む」。&#10;書き出したものもここに出る（選んでコピー）。"></textarea>
+      <div class="hint" id="ioMsg"></div>
+    </div>
+  </div>
+  <div id="main"></div>
+</div>
+
+<script>
+"use strict";
+/* ---------------------------------------------------------------------------
+   templates/sheets/ の00〜08を、そのまま表として出して埋める道具。
+   シートの中身は上の script タグに、ファイルの中身をそのまま入れてある。
+   （fetch は file:// で通らないので、埋め込みにしてある）
+   図は表の写し。図の側では編集しない。
+   ------------------------------------------------------------------------- */
+const SRC = [...document.querySelectorAll('script[data-sheet]')]
+  .map(s => ({ file: s.dataset.sheet, md: s.textContent.replace(/^\n/, '') }));
+
+/* --- markdown を「文章」と「表」に分ける -------------------------------- */
+const cells = l => l.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(s => s.trim());
+function parse(md) {
+  const lines = md.split('\n'), blocks = []; let buf = [];
+  const flush = () => { if (buf.length) { blocks.push({ t: 'text', lines: buf }); buf = []; } };
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i];
+    if (/^\s*\|/.test(l) && i + 1 < lines.length && /^\s*\|[\s:\-|]+\|\s*$/.test(lines[i + 1])) {
+      flush();
+      const head = cells(l), align = lines[i + 1].trim(), rows = [];
+      i += 2;
+      while (i < lines.length && /^\s*\|/.test(lines[i])) { rows.push(cells(lines[i])); i++; }
+      i--;
+      blocks.push({ t: 'table', head, align, rows });
+    } else buf.push(l);
+  }
+  flush();
+  return blocks;
+}
+const SHEETS = SRC.map(s => {
+  const blocks = parse(s.md);
+  const title = (s.md.match(/^#\s+(.+)$/m) || [, s.file])[1];
+  return { file: s.file, title, blocks };
+});
+const sheetOf = pre => SHEETS.find(s => s.file.startsWith(pre));
+
+/* --- 行を足せる表。足せる表は、既に文字が入っている欄も書き換えられる ---- */
+function growable(file, b) {
+  if (b.t !== 'table') return false;
+  const h = b.head[0];
+  if (file.startsWith('02')) return h === '層';
+  if (file.startsWith('03')) return h === '時点' || h === '種類';
+  if (file.startsWith('07')) return h === 'つまみ';
+  return false;
+}
+
+/* --- 保存 --------------------------------------------------------------- */
+const KEY = 'gamedev-sheets-v1';
+let state = {};
+try { state = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { state = {}; }
+const st = f => (state[f] = state[f] || { v: {}, add: {}, layers: 0 });
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
+
+/* 欄の値。書き換えられる欄は、書いた値があればそれ。無ければ元の既定値 */
+function cval(file, key, src, editable) {
+  if (!editable) return src;
+  const v = st(file).v;
+  return (key in v) ? v[key] : src;
+}
+const editableCell = (file, b, src) => growable(file, b) || src === '';
+
+/* --- 層の型（02 だけ） -------------------------------------------------- */
+function layerTemplate(sh) {
+  const i = sh.blocks.findIndex(b => b.t === 'text' && b.lines.some(l => /^##\s*層/.test(l)));
+  if (i < 0) return null;
+  const b = sh.blocks[i + 1];
+  return b && b.t === 'table' ? { head: b.head, align: b.align, rows: b.rows } : null;
+}
+
+/* --- 表の中身を読む（図とつじつまが使う） -------------------------------- */
+function tableRows(pre, headFirst) {
+  const sh = sheetOf(pre); if (!sh) return null;
+  const s = st(sh.file);
+  let out = null;
+  sh.blocks.forEach((b, bi) => {
+    if (b.t !== 'table' || b.head[0] !== headFirst || out) return;
+    const ed = growable(sh.file, b);
+    const rows = b.rows.map((r, ri) =>
+      r.map((c, ci) => cval(sh.file, `${bi}.${ri}.${ci}`, c, ed || c === '')));
+    const n = s.add[bi] || 0;
+    for (let a = 0; a < n; a++)
+      rows.push(b.head.map((_, ci) => cval(sh.file, `${bi}.a${a}.${ci}`, '', true)));
+    out = { head: b.head, rows };
+  });
+  return out;
+}
+/* 00 の答え（問い→答え） */
+function answers00() {
+  const t = tableRows('00', '問い'); const o = {};
+  if (t) t.rows.forEach(r => { o[r[0].replace(/\*\*/g, '')] = (r[1] || '').trim(); });
+  return o;
+}
+function a00(k) { const a = answers00(); for (const q in a) if (q.includes(k)) return a[q]; return ''; }
+/* 01 の答え */
+function a01(k) {
+  const t = tableRows('01', '問い'); if (!t) return '';
+  for (const r of t.rows) if (r[0].replace(/\*\*/g, '').includes(k)) return (r[1] || '').trim();
+  return '';
+}
+
+/* --- 数字と時間の読み取り ----------------------------------------------- */
+function num(t) { if (!t) return null; const m = String(t).match(/-?\d+(\.\d+)?/); return m ? parseFloat(m[0]) : null; }
+function toMin(t) {                       // 「3時間」「30分」「6秒」→ 分
+  const n = num(t); if (n === null) return null;
+  if (/秒/.test(t)) return n / 60;
+  if (/時間|h/i.test(t)) return n * 60;
+  return n;                               // 既定は分
+}
+function toSec(t) { const m = toMin(t); return m === null ? null : m * 60; }
+function countOf(t) {
+  if (!t) return null;
+  if (/尽きない|尽きぬ|無限|∞|ずっと|ない$/.test(t)) return Infinity;
+  const n = num(t); return n === null ? null : n;
+}
+const fmtMin = m => m >= 60 ? (m / 60).toFixed(m % 60 ? 1 : 0) + '時間'
+                : m >= 1 ? Math.round(m) + '分' : Math.round(m * 60) + '秒';
+
+/* --- 00 の答えから配布を決める ------------------------------------------ */
+const NO = /(^|[^ら])な[いく]|無い|なし|いいえ|^no$|×|不要|出ない/i;
+const yes = t => !!t && !NO.test(t);
+function gates() {
+  const h = toMin(a00('通しで何時間')), scr = num(a00('画面は何種類'));
+  return {
+    '00': true, '01': true, '08': true,
+    '02': h === null ? null : h > 60,
+    '03': a00('新しいものが順に') ? yes(a00('新しいものが順に')) : null,
+    '04': a00('尽きるものは') ? yes(a00('尽きるものは')) : null,
+    '05': a00('終わりはあるか') ? yes(a00('終わりはあるか')) : null,
+    '06': scr === null ? null : scr >= 2,
+    '07': a00('数値で調整するもの') ? yes(a00('数値で調整するもの')) : null,
+  };
+}
+
+/* --- 埋まり具合 ---------------------------------------------------------- */
+function counts(sh) {
+  const s = st(sh.file); let total = 0, filled = 0;
+  const tick = v => { total++; if ((v || '').trim()) filled++; };
+  sh.blocks.forEach((b, bi) => {
+    if (b.t !== 'table') return;
+    const ed = growable(sh.file, b);
+    b.rows.forEach((r, ri) => r.forEach((c, ci) => {
+      if (!editableCell(sh.file, b, c)) return;
+      tick(cval(sh.file, `${bi}.${ri}.${ci}`, c, true));
+    }));
+    for (let a = 0; a < (s.add[bi] || 0); a++)
+      b.head.forEach((_, ci) => tick(cval(sh.file, `${bi}.a${a}.${ci}`, '', true)));
+  });
+  const tpl = layerTemplate(sh);
+  if (tpl) for (let L = 0; L < (s.layers || 0); L++)
+    tpl.rows.forEach((r, ri) => r.forEach((c, ci) => {
+      if (c !== '') return; tick(cval(sh.file, `L${L}.${ri}.${ci}`, '', true));
+    }));
+  return { total, filled };
+}
+
+/* --- 画面 --------------------------------------------------------------- */
+let cur = 0;
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const inline = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/`(.+?)`/g, '<code>$1</code>');
+
+function renderText(lines) {
+  let h = '', ul = false;
+  const closeUl = () => { if (ul) { h += '</ul>'; ul = false; } };
+  for (const raw of lines) {
+    const l = raw.trimEnd(); if (!l.trim()) { closeUl(); continue; }
+    let m;
+    if ((m = l.match(/^#\s+(.*)$/))) { closeUl(); h += '<h2>' + inline(m[1]) + '</h2>'; }
+    else if ((m = l.match(/^##\s+(.*)$/))) { closeUl(); h += '<h3>' + inline(m[1]) + '</h3>'; }
+    else if ((m = l.match(/^>\s?(.*)$/))) { closeUl(); h += '<blockquote>' + inline(m[1]) + '</blockquote>'; }
+    else if ((m = l.match(/^[-*]\s+(.*)$/))) { if (!ul) { h += '<ul>'; ul = true; } h += '<li>' + inline(m[1]) + '</li>'; }
+    else { closeUl(); h += '<p>' + inline(l) + '</p>'; }
+  }
+  closeUl();
+  return h.replace(/<\/blockquote><blockquote>/g, '<br>');
+}
+function cellHtml(file, key, src, editable) {
+  if (!editable) return '<td class="fixed">' + inline(src) + '</td>';
+  const v = cval(file, key, src, true);
+  return '<td><textarea data-k="' + key + '" class="' + (v.trim() ? 'filled' : '') + '" rows="1">'
+       + esc(v) + '</textarea></td>';
+}
+function tableHtml(sh, b, bi) {
+  const s = st(sh.file), g = growable(sh.file, b);
+  let h = '<table><tr>' + b.head.map(x => '<th>' + inline(x) + '</th>').join('') + '</tr>';
+  b.rows.forEach((r, ri) => {
+    h += '<tr>' + r.map((c, ci) =>
+      cellHtml(sh.file, `${bi}.${ri}.${ci}`, c, editableCell(sh.file, b, c))).join('') + '</tr>';
+  });
+  const n = s.add[bi] || 0;
+  for (let a = 0; a < n; a++)
+    h += '<tr>' + b.head.map((_, ci) => cellHtml(sh.file, `${bi}.a${a}.${ci}`, '', true)).join('') + '</tr>';
+  h += '</table>';
+  if (g) h += '<div class="bar"><button data-add="' + bi + '">行を足す</button>'
+            + (n ? '<button data-del="' + bi + '">足した行を減らす</button>' : '') + '</div>';
+  return h;
+}
+function render() {
+  const sh = SHEETS[cur], s = st(sh.file);
+  let h = '';
+  sh.blocks.forEach((b, bi) => { h += b.t === 'text' ? renderText(b.lines) : tableHtml(sh, b, bi); });
+  const tpl = layerTemplate(sh);
+  if (tpl) {
+    for (let L = 0; L < (s.layers || 0); L++) {
+      h += '<h3>層（　　　　　）</h3><table><tr>'
+         + tpl.head.map(x => '<th>' + inline(x) + '</th>').join('') + '</tr>';
+      tpl.rows.forEach((r, ri) => {
+        h += '<tr>' + r.map((c, ci) => cellHtml(sh.file, `L${L}.${ri}.${ci}`, c, c === '')).join('') + '</tr>';
+      });
+      h += '</table>';
+    }
+    h += '<div class="bar"><button id="addLayer">層を足す</button>'
+       + ((s.layers || 0) ? '<button id="delLayer">足した層を減らす</button>' : '') + '</div>';
+  }
+  h += figureFor(sh.file);
+  document.getElementById('main').innerHTML = h;
+
+  document.querySelectorAll('#main textarea').forEach(t => {
+    const fit = () => { t.style.height = 'auto'; t.style.height = Math.max(26, t.scrollHeight) + 'px'; };
+    fit();
+    t.addEventListener('input', () => {
+      st(sh.file).v[t.dataset.k] = t.value;
+      t.classList.toggle('filled', !!t.value.trim());
+      fit(); save(); list(); redrawFigure(); pushSave(sh.file);
+    });
+  });
+  document.querySelectorAll('#main [data-add]').forEach(b2 => b2.onclick = () => {
+    const i = b2.dataset.add; s.add[i] = (s.add[i] || 0) + 1; save(); render(); list(); pushSave(sh.file);
+  });
+  document.querySelectorAll('#main [data-del]').forEach(b2 => b2.onclick = () => {
+    const i = b2.dataset.del; s.add[i] = Math.max(0, (s.add[i] || 0) - 1); save(); render(); list(); pushSave(sh.file);
+  });
+  const al = document.getElementById('addLayer');
+  if (al) al.onclick = () => { s.layers = (s.layers || 0) + 1; save(); render(); list(); pushSave(sh.file); };
+  const dl = document.getElementById('delLayer');
+  if (dl) dl.onclick = () => { s.layers = Math.max(0, (s.layers || 0) - 1); save(); render(); list(); pushSave(sh.file); };
+}
+function redrawFigure() {
+  const el = document.getElementById('figbox');
+  if (el) el.outerHTML = figureFor(SHEETS[cur].file);
+}
+function list() {
+  const g = gates();
+  document.getElementById('list').innerHTML = SHEETS.map((sh, i) => {
+    const c = counts(sh), on = g[sh.file.slice(0, 2)];
+    const cls = ['item', i === cur ? 'sel' : '', on === false ? 'off' : '',
+                 c.total && c.filled === c.total ? 'done' : ''].join(' ');
+    return '<div class="' + cls + '" data-i="' + i + '"><span>' + esc(sh.title) + '</span>'
+         + '<span class="n">' + c.filled + '／' + c.total + '</span></div>';
+  }).join('');
+  document.querySelectorAll('#list .item').forEach(e =>
+    e.onclick = () => { cur = +e.dataset.i; render(); list(); });
+  fit();
+}
+
+/* ===========================================================================
+   図。すべて表の写し。図の側では編集しない
+   ========================================================================= */
+const PALETTE = ['#4a7fb5', '#c0563f', '#5b9e6a', '#b58a3a', '#7a5fa8', '#3f8c95'];
+const svg = (w, h, inner) => '<svg viewBox="0 0 ' + w + ' ' + h + '" width="' + w + '" height="' + h + '">' + inner + '</svg>';
+const rect = (x, y, w, h, f, extra) => '<rect x="' + x + '" y="' + y + '" width="' + Math.max(0, w) + '" height="' + h + '" fill="' + f + '"' + (extra || '') + '/>';
+const text = (x, y, s, anchor, size, fill) => '<text x="' + x + '" y="' + y + '" text-anchor="' + (anchor || 'start')
+  + '" font-size="' + (size || 11) + '" fill="' + (fill || '#3a4a52') + '">' + esc(s) + '</text>';
+
+function figureFor(file) {
+  let h = '<div id="figbox">';
+  if (file.startsWith('02')) h += figLayers();
+  else if (file.startsWith('03')) h += figBeat();
+  else if (file.startsWith('07')) h += figCurves();
+  return h + '</div>';
+}
+
+/* --- 1. 層の帯（02） ---------------------------------------------------- */
+function figLayers() {
+  const totalMin = toMin(a00('通しで何時間'));
+  let h = '<div class="fig"><h4>層の帯</h4>';
+  if (totalMin === null)
+    return h + '<div class="warn">描けない（00「通しで何時間遊ぶ想定か」が空）</div></div>';
+  const t = tableRows('02', '層');
+  if (!t) return h + '<div class="warn">描けない（層の一覧が見つからない）</div></div>';
+  const rows = t.rows.filter(r => (r[0] || '').trim());
+  if (!rows.length) return h + '<div class="warn">描けない（層の名前が空）</div></div>';
+
+  const W = 640, L = 88, R = 16, rowH = 22, top = 26;
+  const H = top + rows.length * rowH + 14, plot = W - L - R;
+  let g = '';
+  // 目盛り
+  const ticks = 5;
+  for (let i = 0; i <= ticks; i++) {
+    const x = L + plot * i / ticks;
+    g += '<line x1="' + x + '" y1="' + (top - 6) + '" x2="' + x + '" y2="' + (H - 12) + '" stroke="#dde5e9"/>';
+    g += text(x, top - 10, fmtMin(totalMin * i / ticks), 'middle', 10, '#8a99a2');
+  }
+  const gaps = [];
+  rows.forEach((r, i) => {
+    const y = top + i * rowH;
+    g += text(4, y + 14, (r[0] || '').slice(0, 8), 'start', 11);
+    g += rect(L, y + 3, plot, rowH - 8, '#f2f5f6');
+    const cyc = toMin(r[2]), cnt = countOf(r[3]);
+    let span = null;
+    if (cyc !== null && cnt !== null) span = cnt === Infinity ? totalMin : cyc * cnt;
+    if (span === null) { g += text(L + 6, y + 15, '一巡の長さか回数が空', 'start', 10, '#a4462f'); return; }
+    const drawn = Math.min(span, totalMin);
+    g += rect(L, y + 3, plot * drawn / totalMin, rowH - 8, PALETTE[i % PALETTE.length]);
+    if (span < totalMin) gaps.push({ name: r[0], gap: totalMin - span });
+    if (span > totalMin * 1.02)
+      gaps.push({ name: r[0], over: span - totalMin });
+  });
+  h += svg(W, H, g);
+  if (!gaps.length) h += '<div class="ok">白い部分なし。どの層も通しの終わりまで届いている</div>';
+  gaps.forEach(x => {
+    if (x.over) h += '<div class="warn">' + esc(x.name) + '：通しより ' + fmtMin(x.over) + 'ぶん長い</div>';
+    else h += '<div class="warn">' + esc(x.name) + '：' + fmtMin(x.gap) + 'ぶん空白（そこから先、この層は目標にならない）</div>';
+  });
+  h += '<div class="note">帯の長さ＝「一巡の長さ」×「何回で尽きるか」。「尽きない」は全長に引く。'
+     + '白い部分がそのまま穴。</div>';
+  return h + '</div>';
+}
+
+/* --- 2. 強度のグラフ（03） ---------------------------------------------- */
+function figBeat() {
+  let h = '<div class="fig"><h4>強度のグラフ</h4>';
+  const t = tableRows('03', '時点');
+  if (!t) return h + '<div class="warn">描けない（表が見つからない）</div></div>';
+  const kinds = (tableRows('03', '種類') || { rows: [] }).rows
+    .filter(r => (r[0] || '').trim())
+    .map((r, i) => ({ name: r[0].trim(), color: (r[1] || '').trim() || PALETTE[i % PALETTE.length] }));
+  const colorOf = k => {
+    const f = kinds.find(x => x.name === (k || '').trim());
+    return f ? f.color : '#9fb0b8';
+  };
+  const rows = t.rows.filter(r => (r[0] || '').trim());
+  if (!rows.length) return h + '<div class="warn">描けない（時点が空）</div></div>';
+
+  const W = 640, L = 26, R = 10, top = 12, botH = 34, plotH = 130;
+  const H = top + plotH + botH, plot = W - L - R, bw = plot / rows.length;
+  let g = '';
+  for (let v = 0; v <= 5; v++) {
+    const y = top + plotH - plotH * v / 5;
+    g += '<line x1="' + L + '" y1="' + y + '" x2="' + (W - R) + '" y2="' + y + '" stroke="#dde5e9"/>';
+    g += text(L - 4, y + 4, String(v), 'end', 10, '#8a99a2');
+  }
+  const vals = rows.map(r => { const n = num(r[5]); return n === null ? null : Math.max(0, Math.min(5, n)); });
+  rows.forEach((r, i) => {
+    const v = vals[i], x = L + bw * i + 2, w = bw - 4;
+    if (v !== null && v > 0) {
+      const bh = plotH * v / 5;
+      g += rect(x, top + plotH - bh, w, bh, colorOf(r[6]));
+    } else {
+      g += rect(x, top + plotH - 3, w, 3, '#d8dde0');
+    }
+    const lab = (r[0] || '').replace(/（.*?）/g, '').slice(0, 5);
+    g += '<text x="' + (x + w / 2) + '" y="' + (top + plotH + 12) + '" text-anchor="middle" font-size="9" fill="#6b7c86">' + esc(lab) + '</text>';
+  });
+  // 凡例
+  let lx = L;
+  kinds.forEach(k => {
+    g += rect(lx, H - 14, 9, 9, k.color);
+    g += text(lx + 12, H - 6, k.name, 'start', 10);
+    lx += 16 + k.name.length * 11;
+  });
+  h += svg(W, H, g);
+
+  // 読み取り
+  let run = 1, mono = false;
+  for (let i = 1; i < vals.length; i++) {
+    if (vals[i] !== null && vals[i] === vals[i - 1]) { run++; if (run >= 3) mono = true; } else run = 1;
+  }
+  const blanks = rows.filter((r, i) => vals[i] === null || vals[i] === 0).map(r => r[0]);
+  const mx = Math.max(...vals.filter(v => v !== null).concat([-1]));
+  const lastMax = vals.length && vals[vals.length - 1] !== null && vals[vals.length - 1] === mx && mx > 0;
+  if (mono) h += '<div class="warn">単調（強度が3行以上つづけて同じ）</div>';
+  if (blanks.length) h += '<div class="warn">空白（強度が0か空の行：' + esc(blanks.join('、')) + '）</div>';
+  if (lastMax) h += '<div class="warn">終盤が最大強度（落ちる部分がないと山が効かない）</div>';
+  if (!mono && !blanks.length && !lastMax && vals.some(v => v !== null))
+    h += '<div class="ok">単調・空白・終盤が最大、のどれにも当たっていない</div>';
+  h += '<div class="note">強度は難易度ではない。サスペンス、賭けの大きさ、引き込まれ具合。勘でよい。</div>';
+  return h + '</div>';
+}
+
+/* --- 3. 曲線（07） ------------------------------------------------------ */
+function figCurves() {
+  let h = '<div class="fig"><h4>曲線（指数で伸びるもの）</h4>';
+  const t = tableRows('07', 'つまみ');
+  if (!t) return h + '<div class="warn">描けない（つまみの一覧が見つからない）</div></div>';
+  const lines = t.rows.map(r => ({ name: (r[0] || '').trim(), a: num(r[1]), g: num(r[2]) }))
+    .filter(x => x.name && x.a !== null && x.g !== null && x.a > 0 && x.g > 0);
+  if (!lines.length)
+    return h + '<div class="warn">描けない（「初期値」と「伸び率」の両方が入った行がない）</div></div>';
+
+  const STEPS = 50, W = 640, L = 52, R = 12, top = 12, botH = 34, plotH = 150;
+  const H = top + plotH + botH, plot = W - L - R;
+  let lo = Infinity, hi = -Infinity;
+  lines.forEach(x => { lo = Math.min(lo, x.a); hi = Math.max(hi, x.a * Math.pow(x.g, STEPS)); });
+  const l10 = Math.log10, y0 = l10(Math.max(lo, 1e-9)), y1 = l10(Math.max(hi, lo * 10));
+  const Y = v => top + plotH - plotH * (l10(Math.max(v, 1e-9)) - y0) / Math.max(1e-9, y1 - y0);
+  let g = '';
+  const e0 = Math.floor(y0), e1 = Math.ceil(y1);
+  const estep = Math.max(1, Math.ceil((e1 - e0) / 7));   // 目盛りは多くても8本
+  for (let e = e0; e <= e1; e++) {
+    const y = Y(Math.pow(10, e)); if (y < top - 1 || y > top + plotH + 1) continue;
+    const show = (e - e0) % estep === 0 || e === e1;
+    g += '<line x1="' + L + '" y1="' + y + '" x2="' + (W - R) + '" y2="' + y + '" stroke="'
+       + (show ? '#dde5e9' : '#f0f4f6') + '"/>';
+    if (show) g += text(L - 4, y + 4, '10^' + e, 'end', 9, '#8a99a2');
+  }
+  for (let s = 0; s <= STEPS; s += 10) {
+    const x = L + plot * s / STEPS;
+    g += '<line x1="' + x + '" y1="' + top + '" x2="' + x + '" y2="' + (top + plotH) + '" stroke="#eef2f4"/>';
+    g += text(x, top + plotH + 12, s + '段', 'middle', 9, '#8a99a2');
+  }
+  lines.forEach((x, i) => {
+    let d = '';
+    for (let s = 0; s <= STEPS; s++)
+      d += (s ? 'L' : 'M') + (L + plot * s / STEPS).toFixed(1) + ',' + Y(x.a * Math.pow(x.g, s)).toFixed(1);
+    g += '<path d="' + d + '" fill="none" stroke="' + PALETTE[i % PALETTE.length] + '" stroke-width="1.6"/>';
+  });
+  let lx = L;
+  lines.forEach((x, i) => {
+    g += rect(lx, H - 14, 9, 9, PALETTE[i % PALETTE.length]);
+    g += text(lx + 12, H - 6, x.name + '（×' + x.g + '）', 'start', 10);
+    lx += 22 + (x.name.length + 6) * 10;
+  });
+  h += svg(W, H, g);
+  h += '<div class="note">縦は対数目盛り。交差する点と跳ねる点が見える。'
+     + '値 ＝ 初期値 × 伸び率 ^ 段数。</div>';
+  return h + '</div>';
+}
+
+/* ===========================================================================
+   つじつま（シートをまたいで計算する）
+   ========================================================================= */
+function fit() {
+  const out = [];
+  const totalMin = toMin(a00('通しで何時間'));
+  const near = (a, b) => Math.abs(a - b) <= Math.max(a, b) * 0.2;
+
+  // 1. 通しの時間 ＝ 02の（一巡の長さ×回数）の合計
+  (() => {
+    const t = tableRows('02', '層');
+    if (totalMin === null) return out.push(['na', '通しの時間', '計算できない（00「通しで何時間」が空）']);
+    if (!t) return out.push(['na', '通しの時間', '計算できない（02の層の一覧が無い）']);
+    let sum = 0, used = 0, missing = [];
+    t.rows.forEach(r => {
+      if (!(r[0] || '').trim()) return;
+      const c = toMin(r[2]), n = countOf(r[3]);
+      if (c === null || n === null) { missing.push(r[0]); return; }
+      if (n === Infinity) return;                     // 尽きない層は合計に入れない
+      sum += c * n; used++;
+    });
+    if (!used) return out.push(['na', '通しの時間',
+      '計算できない（尽きる層の「一巡の長さ」と「回数」が空' + (missing.length ? '：' + missing.join('、') : '') + '）']);
+    out.push([near(sum, totalMin) ? 'good' : 'bad', '通しの時間',
+      '層の合計 ' + fmtMin(sum) + ' ／ 00は ' + fmtMin(totalMin)
+      + (missing.length ? '（' + missing.join('、') + 'は空）' : '')]);
+  })();
+
+  // 2. 一巡の中身 ＝ 02のメタ1の一巡 ÷ 01の一回は何秒か
+  (() => {
+    const t = tableRows('02', '層');
+    const one = toSec(a01('一回は何秒か'));
+    if (!t) return out.push(['na', '一巡の中身', '計算できない（02の層の一覧が無い）']);
+    const meta = t.rows.find(r => /メタ1|メタ１/.test(r[0] || ''))
+              || t.rows.find(r => (r[0] || '').trim() && !/コア/.test(r[0]));
+    const cyc = meta ? toMin(meta[2]) : null;
+    if (one === null) return out.push(['na', '一巡の中身', '計算できない（01「一回は何秒か」が空）']);
+    if (cyc === null) return out.push(['na', '一巡の中身', '計算できない（02のメタ1の「一巡の長さ」が空）']);
+    out.push(['good', '一巡の中身',
+      '一巡 ' + fmtMin(cyc) + ' ÷ 一回 ' + Math.round(one) + '秒 ＝ <b>' + Math.round(cyc * 60 / one) + '回</b>／一巡']);
+  })();
+
+  // 3. ビートチャートの全長 ＝ 03の最後の時点
+  (() => {
+    if (totalMin === null) return out.push(['na', 'ビートチャートの全長', '計算できない（00「通しで何時間」が空）']);
+    const t = tableRows('03', '時点');
+    if (!t) return out.push(['na', 'ビートチャートの全長', '計算できない（03の表が無い）']);
+    const rows = t.rows.filter(r => (r[0] || '').trim());
+    if (!rows.length) return out.push(['na', 'ビートチャートの全長', '計算できない（03の時点が空）']);
+    const last = toMin(rows[rows.length - 1][0]);
+    if (last === null) return out.push(['na', 'ビートチャートの全長',
+      '計算できない（03の最後の時点「' + rows[rows.length - 1][0] + '」から時間が読めない）']);
+    out.push([near(last, totalMin) ? 'good' : 'bad', 'ビートチャートの全長',
+      '最後の時点 ' + fmtMin(last) + ' ／ 00は ' + fmtMin(totalMin)]);
+  })();
+
+  document.getElementById('fit').innerHTML =
+    '<div class="hint">つじつま（シートをまたいで計算）</div>'
+    + out.map(([k, n, m]) => '<div class="r ' + k + '"><b>' + esc(n) + '</b><br>' + m + '</div>').join('');
+}
+
+/* --- 書き出し ----------------------------------------------------------- */
+function toMd(sh) {
+  const s = st(sh.file), out = [];
+  sh.blocks.forEach((b, bi) => {
+    if (b.t === 'text') { out.push(...b.lines); return; }
+    out.push('| ' + b.head.join(' | ') + ' |', b.align);
+    b.rows.forEach((r, ri) => out.push('| ' + r.map((c, ci) =>
+      cval(sh.file, `${bi}.${ri}.${ci}`, c, editableCell(sh.file, b, c)).replace(/\n/g, ' ').trim()
+    ).join(' | ') + ' |'));
+    for (let a = 0; a < (s.add[bi] || 0); a++)
+      out.push('| ' + b.head.map((_, ci) =>
+        cval(sh.file, `${bi}.a${a}.${ci}`, '', true).replace(/\n/g, ' ').trim()).join(' | ') + ' |');
+  });
+  const tpl = layerTemplate(sh);
+  if (tpl) for (let L = 0; L < (s.layers || 0); L++) {
+    out.push('', '## 層（　　　　　）', '');
+    out.push('| ' + tpl.head.join(' | ') + ' |', tpl.align);
+    tpl.rows.forEach((r, ri) => out.push('| ' + r.map((c, ci) =>
+      cval(sh.file, `L${L}.${ri}.${ci}`, c, c === '').replace(/\n/g, ' ').trim()).join(' | ') + ' |'));
+  }
+  return out.join('\n').replace(/\n{3,}/g, '\n\n').trimEnd() + '\n';
+}
+const io = document.getElementById('io'), ioMsg = document.getElementById('ioMsg');
+document.getElementById('bExport').onclick = () => {
+  io.value = SHEETS.map(sh => '<!-- ' + sh.file + ' -->\n' + toMd(sh)).join('\n\n');
+  io.select(); ioMsg.textContent = '9枚ぶん出した。選んでコピーする。';
+};
+document.getElementById('bExport1').onclick = () => {
+  io.value = toMd(SHEETS[cur]); io.select(); ioMsg.textContent = SHEETS[cur].file + ' を出した。';
+};
+document.getElementById('bClear').onclick = () => {
+  const f = SHEETS[cur].file; state[f] = { v: {}, add: {}, layers: 0 };
+  save(); render(); list(); ioMsg.textContent = f + ' を空にした。'; pushSave(f);
+};
+
+/* --- 貼り付けて読み込む -------------------------------------------------- */
+function loadOne(file, md) {
+  const sh = SHEETS.find(s => s.file === file); if (!sh) return 0;
+  const got = parse(md).filter(b => b.t === 'table');
+  const s = state[sh.file] = { v: {}, add: {}, layers: 0 };
+  let ti = 0;
+  sh.blocks.forEach((b, bi) => {
+    if (b.t !== 'table') return;
+    const G = got[ti++]; if (!G) return;
+    b.rows.forEach((r, ri) => r.forEach((c, ci) => {
+      if (!editableCell(sh.file, b, c)) return;
+      const v = G.rows[ri] && G.rows[ri][ci];
+      if (v !== undefined) s.v[`${bi}.${ri}.${ci}`] = v;
+    }));
+    const extra = G.rows.length - b.rows.length;
+    if (extra > 0 && growable(sh.file, b)) {
+      s.add[bi] = extra;
+      for (let a = 0; a < extra; a++) b.head.forEach((_, ci) => {
+        const v = G.rows[b.rows.length + a][ci]; if (v) s.v[`${bi}.a${a}.${ci}`] = v;
+      });
+    }
+  });
+  const tpl = layerTemplate(sh);
+  if (tpl && got.length > ti) {
+    s.layers = got.length - ti;
+    for (let L = 0; L < s.layers; L++) {
+      const G = got[ti + L];
+      tpl.rows.forEach((r, ri) => r.forEach((c, ci) => {
+        if (c !== '') return;
+        const v = G.rows[ri] && G.rows[ri][ci]; if (v) s.v[`L${L}.${ri}.${ci}`] = v;
+      }));
+    }
+  }
+  return 1;
+}
+function loadMd(md) {
+  const parts = [];
+  const re = /<!--\s*(\S+\.md)\s*-->/g; let m, last = null, li = 0;
+  while ((m = re.exec(md))) {
+    if (last) parts.push({ file: last, md: md.slice(li, m.index) });
+    last = m[1]; li = re.lastIndex;
+  }
+  if (last) parts.push({ file: last, md: md.slice(li) });
+  if (!parts.length) {
+    const ti = (md.match(/^#\s+(.+)$/m) || [])[1] || '';
+    const sh = SHEETS.find(s => s.title.trim() === ti.trim())
+            || SHEETS.find(s => ti.trim().startsWith(s.file.slice(0, 2)));
+    if (!sh) return 0;
+    parts.push({ file: sh.file, md });
+  }
+  let n = 0;
+  for (const p of parts) n += loadOne(p.file, p.md);
+  save(); return n;
+}
+document.getElementById('bPaste').onclick = () => {
+  const n = loadMd(io.value);
+  ioMsg.textContent = n ? n + '枚を読み込んだ。' : '読み込めなかった（見出しかファイル名の目印が要る）。';
+  render(); list();
+  if (n) SHEETS.forEach(x => pushSave(x.file));
+};
+
+/* ===========================================================================
+   置き場のファイルに保存する（tools/serve.mjs で開いたときだけ）
+   ========================================================================= */
+const SERVER = location.protocol === 'http:' || location.protocol === 'https:';
+const srv = document.getElementById('srv');
+const srvMsg = (s, cls) => { srv.textContent = s; srv.style.color = cls === 'bad' ? '#a4462f' : '#6b7c86'; };
+const timers = {};
+function pushSave(file) {
+  if (!SERVER) return;
+  clearTimeout(timers[file]);
+  timers[file] = setTimeout(() => {
+    const sh = SHEETS.find(x => x.file === file);
+    fetch('api/sheet?f=' + encodeURIComponent(file), { method: 'PUT', body: toMd(sh) })
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(d => srvMsg('保存した ' + file + '（' + d.at + '）'))
+      .catch(e => srvMsg('保存できない（' + e + '）', 'bad'));
+  }, 400);
+}
+function bootServer() {
+  if (!SERVER) { srvMsg('ファイルには保存しない（ブラウザのなかに残す）。'
+    + 'ファイルに保存するには tools/serve.mjs で開く'); return; }
+  fetch('api/sheets').then(r => r.json()).then(d => {
+    const got = Object.keys(d.files || {});
+    got.forEach(f => loadOne(f, d.files[f]));
+    save(); render(); list();
+    srvMsg('置き場：' + d.dir + (got.length ? '（' + got.length + '枚を読み込んだ）' : '（まだ空）'));
+  }).catch(e => srvMsg('置き場が読めない（' + e + '）', 'bad'));
+}
+
+render(); list(); bootServer();
+</script>
+</body>
+</html>
