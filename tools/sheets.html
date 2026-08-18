@@ -285,6 +285,7 @@ flow.md 段階3の **C. 入出力の設計** の問いを、そのまま表に�
     <div id="list"></div>
     <div id="fit"></div>
     <div class="sec">
+      <div id="srv" class="hint"></div>
       <div class="bar">
         <button id="bExport">全部を書き出す</button>
         <button id="bExport1">この1枚を書き出す</button>
@@ -523,19 +524,19 @@ function render() {
     t.addEventListener('input', () => {
       st(sh.file).v[t.dataset.k] = t.value;
       t.classList.toggle('filled', !!t.value.trim());
-      fit(); save(); list(); redrawFigure();
+      fit(); save(); list(); redrawFigure(); pushSave(sh.file);
     });
   });
   document.querySelectorAll('#main [data-add]').forEach(b2 => b2.onclick = () => {
-    const i = b2.dataset.add; s.add[i] = (s.add[i] || 0) + 1; save(); render(); list();
+    const i = b2.dataset.add; s.add[i] = (s.add[i] || 0) + 1; save(); render(); list(); pushSave(sh.file);
   });
   document.querySelectorAll('#main [data-del]').forEach(b2 => b2.onclick = () => {
-    const i = b2.dataset.del; s.add[i] = Math.max(0, (s.add[i] || 0) - 1); save(); render(); list();
+    const i = b2.dataset.del; s.add[i] = Math.max(0, (s.add[i] || 0) - 1); save(); render(); list(); pushSave(sh.file);
   });
   const al = document.getElementById('addLayer');
-  if (al) al.onclick = () => { s.layers = (s.layers || 0) + 1; save(); render(); list(); };
+  if (al) al.onclick = () => { s.layers = (s.layers || 0) + 1; save(); render(); list(); pushSave(sh.file); };
   const dl = document.getElementById('delLayer');
-  if (dl) dl.onclick = () => { s.layers = Math.max(0, (s.layers || 0) - 1); save(); render(); list(); };
+  if (dl) dl.onclick = () => { s.layers = Math.max(0, (s.layers || 0) - 1); save(); render(); list(); pushSave(sh.file); };
 }
 function redrawFigure() {
   const el = document.getElementById('figbox');
@@ -822,10 +823,44 @@ document.getElementById('bExport1').onclick = () => {
 };
 document.getElementById('bClear').onclick = () => {
   const f = SHEETS[cur].file; state[f] = { v: {}, add: {}, layers: 0 };
-  save(); render(); list(); ioMsg.textContent = f + ' を空にした。';
+  save(); render(); list(); ioMsg.textContent = f + ' を空にした。'; pushSave(f);
 };
 
 /* --- 貼り付けて読み込む -------------------------------------------------- */
+function loadOne(file, md) {
+  const sh = SHEETS.find(s => s.file === file); if (!sh) return 0;
+  const got = parse(md).filter(b => b.t === 'table');
+  const s = state[sh.file] = { v: {}, add: {}, layers: 0 };
+  let ti = 0;
+  sh.blocks.forEach((b, bi) => {
+    if (b.t !== 'table') return;
+    const G = got[ti++]; if (!G) return;
+    b.rows.forEach((r, ri) => r.forEach((c, ci) => {
+      if (!editableCell(sh.file, b, c)) return;
+      const v = G.rows[ri] && G.rows[ri][ci];
+      if (v !== undefined) s.v[`${bi}.${ri}.${ci}`] = v;
+    }));
+    const extra = G.rows.length - b.rows.length;
+    if (extra > 0 && growable(sh.file, b)) {
+      s.add[bi] = extra;
+      for (let a = 0; a < extra; a++) b.head.forEach((_, ci) => {
+        const v = G.rows[b.rows.length + a][ci]; if (v) s.v[`${bi}.a${a}.${ci}`] = v;
+      });
+    }
+  });
+  const tpl = layerTemplate(sh);
+  if (tpl && got.length > ti) {
+    s.layers = got.length - ti;
+    for (let L = 0; L < s.layers; L++) {
+      const G = got[ti + L];
+      tpl.rows.forEach((r, ri) => r.forEach((c, ci) => {
+        if (c !== '') return;
+        const v = G.rows[ri] && G.rows[ri][ci]; if (v) s.v[`L${L}.${ri}.${ci}`] = v;
+      }));
+    }
+  }
+  return 1;
+}
 function loadMd(md) {
   const parts = [];
   const re = /<!--\s*(\S+\.md)\s*-->/g; let m, last = null, li = 0;
@@ -842,49 +877,46 @@ function loadMd(md) {
     parts.push({ file: sh.file, md });
   }
   let n = 0;
-  for (const p of parts) {
-    const sh = SHEETS.find(s => s.file === p.file); if (!sh) continue;
-    const got = parse(p.md).filter(b => b.t === 'table');
-    const s = state[sh.file] = { v: {}, add: {}, layers: 0 };
-    let ti = 0;
-    sh.blocks.forEach((b, bi) => {
-      if (b.t !== 'table') return;
-      const G = got[ti++]; if (!G) return;
-      b.rows.forEach((r, ri) => r.forEach((c, ci) => {
-        if (!editableCell(sh.file, b, c)) return;
-        const v = G.rows[ri] && G.rows[ri][ci];
-        if (v !== undefined) s.v[`${bi}.${ri}.${ci}`] = v;
-      }));
-      const extra = G.rows.length - b.rows.length;
-      if (extra > 0 && growable(sh.file, b)) {
-        s.add[bi] = extra;
-        for (let a = 0; a < extra; a++) b.head.forEach((_, ci) => {
-          const v = G.rows[b.rows.length + a][ci]; if (v) s.v[`${bi}.a${a}.${ci}`] = v;
-        });
-      }
-    });
-    const tpl = layerTemplate(sh);
-    if (tpl && got.length > ti) {
-      s.layers = got.length - ti;
-      for (let L = 0; L < s.layers; L++) {
-        const G = got[ti + L];
-        tpl.rows.forEach((r, ri) => r.forEach((c, ci) => {
-          if (c !== '') return;
-          const v = G.rows[ri] && G.rows[ri][ci]; if (v) s.v[`L${L}.${ri}.${ci}`] = v;
-        }));
-      }
-    }
-    n++;
-  }
+  for (const p of parts) n += loadOne(p.file, p.md);
   save(); return n;
 }
 document.getElementById('bPaste').onclick = () => {
   const n = loadMd(io.value);
   ioMsg.textContent = n ? n + '枚を読み込んだ。' : '読み込めなかった（見出しかファイル名の目印が要る）。';
   render(); list();
+  if (n) SHEETS.forEach(x => pushSave(x.file));
 };
 
-render(); list();
+/* ===========================================================================
+   置き場のファイルに保存する（tools/serve.mjs で開いたときだけ）
+   ========================================================================= */
+const SERVER = location.protocol === 'http:' || location.protocol === 'https:';
+const srv = document.getElementById('srv');
+const srvMsg = (s, cls) => { srv.textContent = s; srv.style.color = cls === 'bad' ? '#a4462f' : '#6b7c86'; };
+const timers = {};
+function pushSave(file) {
+  if (!SERVER) return;
+  clearTimeout(timers[file]);
+  timers[file] = setTimeout(() => {
+    const sh = SHEETS.find(x => x.file === file);
+    fetch('api/sheet?f=' + encodeURIComponent(file), { method: 'PUT', body: toMd(sh) })
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(d => srvMsg('保存した ' + file + '（' + d.at + '）'))
+      .catch(e => srvMsg('保存できない（' + e + '）', 'bad'));
+  }, 400);
+}
+function bootServer() {
+  if (!SERVER) { srvMsg('ファイルには保存しない（ブラウザのなかに残す）。'
+    + 'ファイルに保存するには tools/serve.mjs で開く'); return; }
+  fetch('api/sheets').then(r => r.json()).then(d => {
+    const got = Object.keys(d.files || {});
+    got.forEach(f => loadOne(f, d.files[f]));
+    save(); render(); list();
+    srvMsg('置き場：' + d.dir + (got.length ? '（' + got.length + '枚を読み込んだ）' : '（まだ空）'));
+  }).catch(e => srvMsg('置き場が読めない（' + e + '）', 'bad'));
+}
+
+render(); list(); bootServer();
 </script>
 </body>
 </html>
