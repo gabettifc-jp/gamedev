@@ -26,9 +26,10 @@
 
 1. ゲームのリポジトリを作る
 2. `templates/` から `spec.md`、`checklist.md`、`prompt.md`、`check.md` を写す
-3. `templates/sheets/00-kihon.md` を写して埋める。答えで配られたシートも順に埋める
-4. `gamedev/CLAUDE.md` を参照する一行を、ゲーム側の `CLAUDE.md` に書く
-5. `flow.md` の1と2（面白さの核、面白いと思う仮説）を `spec.md` の先頭に埋める
-6. `checklist.md` を眺め、後戻りが高い項目だけ先に埋める
-7. 見た目の見本から作る
-8. 感触が出たら、その場で `gamedev/friction.md` に生のまま書く
+3. **`flow.md` の段階0（型を先に借りる）をやる。**そのゲームの種類で、仕様書に何の欄があるかを調べる
+4. `templates/sheets/00-kihon.md` を写して埋める。答えで配られたシートも順に埋める
+5. `gamedev/CLAUDE.md` を参照する一行を、ゲーム側の `CLAUDE.md` に書く
+6. `flow.md` の1と2（面白さの核、面白いと思う仮説）を `spec.md` の先頭に埋める
+7. `checklist.md` を眺め、後戻りが高い項目だけ先に埋める
+8. 見た目の見本から作る
+9. 感触が出たら、その場で `gamedev/friction.md` に生のまま書く
