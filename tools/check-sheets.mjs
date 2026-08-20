@@ -45,10 +45,17 @@ const strip = s => s.replace(/\*\*/g, '').trim();
 const gdir = join(SHEETS, 'genre');
 for (const g of readdirSync(gdir).filter(f => f.endsWith('.md') && f !== 'README.md')) {
   const lines = readFileSync(join(gdir, g), 'utf8').split('\n');
-  let n = 0;
+  let n = 0, skipped = 0, inSoba = false;
   for (const l of lines) {
-    const m = l.match(/^\|\s*(\d\d)「(.+?)」\s*\|/);
-    if (!m) continue;
+    if (/^##\s/.test(l)) inSoba = /相場/.test(l);
+    // 「」のあとに補足（（買ったとき）など）が付いてもよい
+    const m = l.match(/^\|\s*(\d\d)「(.+?)」[^|]*\|/);
+    if (!m) {
+      // 相場の表のなかで、シートを指していない行を数える。**黙って飛ばさない**
+      if (inSoba && /^\|/.test(l) && !/^\|[\s:\-|]+\|$/.test(l)
+          && !/どのシートの/.test(l)) skipped++;
+      continue;
+    }
     n++;
     const [, num, quoted] = m;
     const file = files.find(f => f.startsWith(num));
@@ -57,7 +64,7 @@ for (const g of readdirSync(gdir).filter(f => f.endsWith('.md') && f !== 'README
     if (qs.some(q => strip(q) === strip(quoted))) continue;
     ng(`${g}: ${num}「${strip(quoted).slice(0, 30)}…」が ${file} に無い`);
   }
-  if (n) ok(`${g}（${n}行を照合）`);
+  if (n) ok(`${g}（${n}行を照合${skipped ? `／シートを指していない行 ${skipped}` : ''}）`);
 }
 
 console.log(bad ? `\nずれ ${bad} 件` : '\nずれなし');
