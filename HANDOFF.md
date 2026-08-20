@@ -38,7 +38,7 @@
 | tools/sheets.html | 表を埋める道具。図三つとつじつまの欄あり。`serve.mjs` でファイルに保存 |
 | lessons.md | fishing-inc の当たったこと・外れたこと |
 | **open.md** | **決めざるを得なかった点。三段ぶんの七件と、保留にした指摘** |
-| friction.md | つまらなさの生ログ。**2026-08-19に四件**（触った直後の言葉） |
+| friction.md | つまらなさの生ログ。**2026-08-19に五件**（通しで四件、手触りの見本で一件） |
 | references/ | zombie-vital.md、incremental.md |
 
 ### 触った結果（2026-08-19）
