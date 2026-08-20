@@ -30,6 +30,7 @@
   textarea{width:100%;min-height:26px;border:0;background:var(--empty);font:inherit;
     resize:vertical;padding:2px 3px;color:inherit}
   textarea.filled{background:transparent}
+  textarea.skip{background:#eef3f6;color:var(--dim)}
   textarea:focus{outline:2px solid #7aa7c0;background:#fff}
   blockquote{margin:8px 0;padding:6px 10px;border-left:3px solid var(--line);background:#eef3f6;color:#3a4a52}
   h2{font-size:15px;margin:16px 0 4px}
@@ -362,6 +363,9 @@
         <button id="bExport1">この1枚を書き出す</button>
       </div>
       <div class="bar">
+        <button id="bSkip">選んだ欄に〔要らない〕</button>
+      </div>
+      <div class="bar">
         <button id="bPaste">貼り付けて読み込む</button>
         <button id="bClear">この1枚を空にする</button>
       </div>
@@ -408,6 +412,13 @@ const SHEETS = SRC.map(s => {
   return { file: s.file, title, blocks };
 });
 const sheetOf = pre => SHEETS.find(s => s.file.startsWith(pre));
+
+/* --- 「このゲームには要らない」の印 -------------------------------------
+   欄には三つの状態がある（templates/sheets/README.md「欄の三つの状態」）。
+   空＝まだ見ていない／印＝見て要らないと決めた／その他＝埋めた。
+   印は空欄ではないので、埋まり具合では「埋まった」に数える。 */
+const SKIP = '〔このゲームには要らない〕';
+const isSkip = v => (v || '').trim().startsWith(SKIP);
 
 /* --- 行を足せる表。足せる表は、既に文字が入っている欄も書き換えられる ---- */
 function growable(file, b) {
@@ -511,7 +522,7 @@ function gates() {
 /* --- 埋まり具合 ---------------------------------------------------------- */
 function counts(sh) {
   const s = st(sh.file); let total = 0, filled = 0;
-  const tick = v => { total++; if ((v || '').trim()) filled++; };
+  const tick = v => { total++; if ((v || '').trim()) filled++; };  // 印も空でないので数える
   sh.blocks.forEach((b, bi) => {
     if (b.t !== 'table') return;
     const ed = growable(sh.file, b);
@@ -532,6 +543,7 @@ function counts(sh) {
 
 /* --- 画面 --------------------------------------------------------------- */
 let cur = 0;
+let lastCell = null;   // 最後に触った欄。〔要らない〕ボタンが使う
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const inline = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/`(.+?)`/g, '<code>$1</code>');
 
@@ -553,7 +565,8 @@ function renderText(lines) {
 function cellHtml(file, key, src, editable) {
   if (!editable) return '<td class="fixed">' + inline(src) + '</td>';
   const v = cval(file, key, src, true);
-  return '<td><textarea data-k="' + key + '" class="' + (v.trim() ? 'filled' : '') + '" rows="1">'
+  const cls = v.trim() ? (isSkip(v) ? 'filled skip' : 'filled') : '';
+  return '<td><textarea data-k="' + key + '" class="' + cls + '" rows="1">'
        + esc(v) + '</textarea></td>';
 }
 function tableHtml(sh, b, bi) {
@@ -594,9 +607,11 @@ function render() {
   document.querySelectorAll('#main textarea').forEach(t => {
     const fit = () => { t.style.height = 'auto'; t.style.height = Math.max(26, t.scrollHeight) + 'px'; };
     fit();
+    t.addEventListener('focus', () => { lastCell = t; });
     t.addEventListener('input', () => {
       st(sh.file).v[t.dataset.k] = t.value;
       t.classList.toggle('filled', !!t.value.trim());
+      t.classList.toggle('skip', isSkip(t.value));
       fit(); save(); list(); redrawFigure(); pushSave(sh.file);
     });
   });
@@ -953,6 +968,16 @@ function loadMd(md) {
   for (const p of parts) n += loadOne(p.file, p.md);
   save(); return n;
 }
+document.getElementById('bSkip').onclick = () => {
+  if (!lastCell || !document.body.contains(lastCell)) {
+    ioMsg.textContent = '先に欄を押してから。'; return;
+  }
+  if (isSkip(lastCell.value)) { ioMsg.textContent = 'その欄には、もう印がある。'; return; }
+  lastCell.value = SKIP + lastCell.value.trim();
+  lastCell.dispatchEvent(new Event('input'));
+  lastCell.focus();
+  ioMsg.textContent = '印を入れた。なぜ要らないかを、印の後ろに一行書くこと。';
+};
 document.getElementById('bPaste').onclick = () => {
   const n = loadMd(io.value);
   ioMsg.textContent = n ? n + '枚を読み込んだ。' : '読み込めなかった（見出しかファイル名の目印が要る）。';
