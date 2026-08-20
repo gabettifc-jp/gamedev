@@ -17,8 +17,10 @@
 | `ideas.md` | 面白さのアイディア置き場（種と点検） |
 | `friction.md` | つまらなさの生ログ。整形せずその場で書く |
 | `lessons.md` | 一本終えるたびの当たり外れ |
+| `open.md` | 決めざるを得なかった点。承認があるものと無いものを分けて書く |
 | `templates/` | ゲーム側へ写すひな形 |
 | `templates/sheets/` | 段階3で埋めるシート。`00-kihon.md` から始める |
+| `templates/sheets/genre/` | ジャンルシート。そのジャンルを名乗ったら答えなければならないこと |
 | `tools/` | シートを埋める道具。`serve.mjs` で立ち上げるとファイルに保存される |
 | `references/` | 参照元のゲームの調査結果 |
 
@@ -26,10 +28,12 @@
 
 1. ゲームのリポジトリを作る
 2. `templates/` から `spec.md`、`checklist.md`、`prompt.md`、`check.md` を写す
-3. **`flow.md` の段階0（型を先に借りる）をやる。**そのゲームの種類で、仕様書に何の欄があるかを調べる
-4. `templates/sheets/00-kihon.md` を写して埋める。答えで配られたシートも順に埋める
-5. `gamedev/CLAUDE.md` を参照する一行を、ゲーム側の `CLAUDE.md` に書く
-6. `flow.md` の1と2（面白さの核、面白いと思う仮説）を `spec.md` の先頭に埋める
-7. `checklist.md` を眺め、後戻りが高い項目だけ先に埋める
-8. 見た目の見本から作る
-9. 感触が出たら、その場で `gamedev/friction.md` に生のまま書く
+3. **`flow.md` の段階0-a（設計文書の型を借りる）をやる。**そのゲームの種類で、仕様書に何の欄があるかを調べる
+4. **`flow.md` の段階0-b（ジャンルシートを作る）をやる。**そのジャンルで既に解かれている問題を、
+   `templates/sheets/genre/` に空欄のある表として置く（規則は `templates/sheets/genre/README.md`）
+5. `templates/sheets/00-kihon.md` を写して埋める。答えで配られたシートも順に埋める
+6. `gamedev/CLAUDE.md` を参照する一行を、ゲーム側の `CLAUDE.md` に書く
+7. `flow.md` の1と2（面白さの核、面白いと思う仮説）を `spec.md` の先頭に埋める
+8. `checklist.md` を眺め、後戻りが高い項目だけ先に埋める
+9. 見た目の見本から作る
+10. 感触が出たら、その場で `gamedev/friction.md` に生のまま書く

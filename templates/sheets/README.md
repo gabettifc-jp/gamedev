@@ -88,7 +88,7 @@ node tools/serve.mjs ../fishing-inc/sheets
 | `06-screens.md` | 画面が2種類以上 |
 | `07-tunables.md` | 数値で調整するものがある |
 | `09-loop-chart.md` | 通しが1時間を超える（メタループが10回以上巡るなら必ず） |
-| `genre/*.md` | **00でジャンルが挙がったとき。**挙がったジャンルの数だけ |
+| `genre/*.md` | **00でジャンルを書いたとき。**書いたジャンルの数だけ |
 
 `spec.md` / `checklist.md` / `prompt.md` / `check.md` は、これまでどおり使う。
 シートは仕様書を書く前の工程で、`spec.md` はその結果を書き留めるところ。
