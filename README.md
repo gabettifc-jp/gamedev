@@ -23,6 +23,7 @@
 | `templates/sheets/` | 段階3で埋めるシート。`00-kihon.md` から始める |
 | `templates/sheets/genre/` | ジャンルシート。そのジャンルを名乗ったら答えなければならないこと |
 | `tools/` | シートを埋める道具。`serve.mjs` で立ち上げるとファイルに保存される |
+| `tools/check-sheets.mjs` | **写しとシート、相場表と問いを照合する。**`node tools/check-sheets.mjs` |
 | `references/` | 参照元のゲームの調査結果 |
 
 ## 新しいゲームを始めるときの手順
