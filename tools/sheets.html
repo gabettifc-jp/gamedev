@@ -30,6 +30,7 @@
   textarea{width:100%;min-height:26px;border:0;background:var(--empty);font:inherit;
     resize:vertical;padding:2px 3px;color:inherit}
   textarea.filled{background:transparent}
+  textarea.skip{background:#eef3f6;color:var(--dim)}
   textarea:focus{outline:2px solid #7aa7c0;background:#fff}
   blockquote{margin:8px 0;padding:6px 10px;border-left:3px solid var(--line);background:#eef3f6;color:#3a4a52}
   h2{font-size:15px;margin:16px 0 4px}
@@ -69,6 +70,7 @@
 | 問い | 答え |
 |---|---|
 | 面白さの核（一文で） | |
+| **どうなっていれば面白いはずか**（仮説。「〜のとき、〜すると、〜になる」の形） | |
 | **通しで何時間遊ぶ想定か** | |
 | **一回の繰り返しは何秒か** | |
 | **終わりはあるか。あるなら何をしたら終わりか** | |
@@ -77,6 +79,7 @@
 | 何を増やすゲームか | |
 | プレイヤーが直接できることは何か | |
 | プレイヤーができないことは何か | |
+| **どんなジャンルか。掛け合わせなら全部書く** | |
 | **画面は何種類あるか** | |
 | **数値で調整するものはあるか** | |
 | 何で作るか | |
@@ -93,6 +96,7 @@
 | 終わりがある | **05-endgame.md** |
 | 画面が2種類以上 | 06-screens.md |
 | 数値で調整するものがある | 07-tunables.md |
+| **ジャンルを書いた** | **書いたジャンルのジャンルシート**（`genre/`）。書いた数だけ |
 | 通しが1時間を超える | **09-loop-chart.md**（02のメタループが10回以上巡るなら必ず） |
 
 > **テトリスのようなゲームなら 01 と 08 だけでよい。**
@@ -108,10 +112,14 @@
 | 一回のループで、プレイヤーは何をするか | |
 | 一回は何秒か | |
 | 一回ごとに何がもらえるか | |
+| **それがもらえたと、画面のどこで分かるか** | |
 | もらったものを何に使うか | |
 | **一回ごとに判断はあるか。何を賭けるか** | |
 | 一回ごとに結果が変わるか。何で変わるか | |
 | **これを何百回繰り返しても飽きないと言える理由** | |
+
+> **もらう中身の欄はあるが、もらったと伝わる形の欄が無かった。**
+> 何がもらえるかと、それが伝わるかは、別々に決まる。
 
 > **周期が長すぎると飽き、短すぎると単調になる。**
 > 「最も時間を費やす30秒から1分は、本当に楽しいか」から始める。
@@ -130,6 +138,7 @@
 | この層で、プレイヤーは何を目指すか | |
 | **一周（この層が一巡）は何分か** | |
 | 一巡すると何が変わるか | |
+| **一巡すると何が消えて、何が残るか** | |
 | **この層は何回巡ると尽きるか。尽きないか** | |
 | 尽きるなら、尽きた後は何の層が動くか | |
 
@@ -140,6 +149,7 @@
 | この層で、プレイヤーは何を目指すか | |
 | **一周（この層が一巡）は何分か** | |
 | 一巡すると何が変わるか | |
+| **一巡すると何が消えて、何が残るか** | |
 | **この層は何回巡ると尽きるか。尽きないか** | |
 | 尽きるなら、尽きた後は何の層が動くか | |
 
@@ -204,6 +214,10 @@
 
 **アークをループの代わりに置くと、尽きた瞬間に穴が空く。**
 
+| 問い | 答え |
+|---|---|
+| **難しさはどこで上がるか** | |
+
 尽きるものを一つずつ書く。
 
 | 尽きるもの | 何回で尽きるか | 尽きるのは通しのどのあたりか | **尽きた後に何が始まるか** |
@@ -221,6 +235,7 @@
 | 問い | 答え |
 |---|---|
 | 最後の目標は何か | |
+| **勝ちは何か。負けはあるか** | |
 | **それが見えるのはいつからか** | |
 | 最後の目標に向かう時間はどれくらいか | |
 | その時間、プレイヤーは何をしているか | |
@@ -230,7 +245,7 @@
 <script type="text/plain" data-sheet="06-screens.md">
 # 06 画面
 
-flow.md 段階3の **B. 画面の設計** の問いを、そのまま表にしたもの。内容は変えていない。
+**B. 画面の設計の問いは、ここが正本。**flow.md 段階3のBは、この表を指している。
 
 | 問い | 答え |
 |---|---|
@@ -246,7 +261,7 @@ flow.md 段階3の **B. 画面の設計** の問いを、そのまま表にし�
 <script type="text/plain" data-sheet="07-tunables.md">
 # 07 つまみと初期値
 
-flow.md 段階3の **D. 初期値** の問いを、そのまま表にしたもの。内容は変えていない。
+**D. 初期値の問いは、ここが正本。**flow.md 段階3のDは、この表を指している。
 
 | 問い | 答え |
 |---|---|
@@ -269,7 +284,7 @@ flow.md 段階3の **D. 初期値** の問いを、そのまま表にしたも�
 <script type="text/plain" data-sheet="08-input.md">
 # 08 入出力
 
-flow.md 段階3の **C. 入出力の設計** の問いを、そのまま表にしたもの。内容は変えていない。
+**C. 入出力の設計の問いは、ここが正本。**flow.md 段階3のCは、この表を指している。
 
 | 問い | 答え |
 |---|---|
@@ -278,6 +293,13 @@ flow.md 段階3の **C. 入出力の設計** の問いを、そのまま表に�
 | 待ち時間や演出のあいだ、操作を受け付けるか | |
 | **絶対に止めてはいけない操作はどれか**（頻度の高いものは止めると累積で効く） | |
 | 間違えて押したときに取り返しはつくか | |
+| **判定や当たりの外で入力したら、何が起きるか** | |
+| **何も入力せずに通り過ぎたら、何が起きるか** | |
+| **入力が競合したとき（直前の入力がまだ続いているとき）、どちらを取るか** | |
+| **成功したとき／失敗したとき、それぞれ何が返るか（音・画面）** | |
+
+> **正しく操作したときの仕様は全員が書くが、外したとき・空振りしたとき・
+> 何もしなかったときの仕様は落ちる。**
 </script>
 
 <script type="text/plain" data-sheet="09-loop-chart.md">
@@ -290,7 +312,7 @@ flow.md 段階3の **C. 入出力の設計** の問いを、そのまま表に�
 03 だけでは後半が書けないので、この表を足す。
 
 > **右の三列（取る恒久の強化・新しいこと・次の周へ移る合図）が空いている行が、
-> 遊ぶ人が何をすればいいか分からない周である。**
+> プレイヤーが何をすればいいか分からない周である。**
 
 ## 先に決めないと埋まらないこと
 
@@ -322,7 +344,7 @@ flow.md 段階3の **C. 入出力の設計** の問いを、そのまま表に�
 
 | 列 | 空いていると何が起きるか |
 |---|---|
-| この周の目標 | **遊ぶ人が何をすればいいか分からない周。**ここが空の行が続くと、そこが退屈な時間帯になる |
+| この周の目標 | **プレイヤーが何をすればいいか分からない周。**ここが空の行が続くと、そこが退屈な時間帯になる |
 | 開くもの | アークが尽きている周。`04-arc.md` の右端の列と同じ問い |
 | 取る恒久の強化 | 何周目に何が取れるかが、**値段と式の割り算まかせ**になる。配ってから値段を逆算するほうが速い |
 | 新しいこと | 退屈になる周 |
@@ -339,6 +361,9 @@ flow.md 段階3の **C. 入出力の設計** の問いを、そのまま表に�
       <div class="bar">
         <button id="bExport">全部を書き出す</button>
         <button id="bExport1">この1枚を書き出す</button>
+      </div>
+      <div class="bar">
+        <button id="bSkip">選んだ欄に〔要らない〕</button>
       </div>
       <div class="bar">
         <button id="bPaste">貼り付けて読み込む</button>
@@ -387,6 +412,13 @@ const SHEETS = SRC.map(s => {
   return { file: s.file, title, blocks };
 });
 const sheetOf = pre => SHEETS.find(s => s.file.startsWith(pre));
+
+/* --- 「このゲームには要らない」の印 -------------------------------------
+   欄には三つの状態がある（templates/sheets/README.md「欄の三つの状態」）。
+   空＝まだ見ていない／印＝見て要らないと決めた／その他＝埋めた。
+   印は空欄ではないので、埋まり具合では「埋まった」に数える。 */
+const SKIP = '〔このゲームには要らない〕';
+const isSkip = v => (v || '').trim().startsWith(SKIP);
 
 /* --- 行を足せる表。足せる表は、既に文字が入っている欄も書き換えられる ---- */
 function growable(file, b) {
@@ -490,7 +522,7 @@ function gates() {
 /* --- 埋まり具合 ---------------------------------------------------------- */
 function counts(sh) {
   const s = st(sh.file); let total = 0, filled = 0;
-  const tick = v => { total++; if ((v || '').trim()) filled++; };
+  const tick = v => { total++; if ((v || '').trim()) filled++; };  // 印も空でないので数える
   sh.blocks.forEach((b, bi) => {
     if (b.t !== 'table') return;
     const ed = growable(sh.file, b);
@@ -511,6 +543,7 @@ function counts(sh) {
 
 /* --- 画面 --------------------------------------------------------------- */
 let cur = 0;
+let lastCell = null;   // 最後に触った欄。〔要らない〕ボタンが使う
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const inline = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/`(.+?)`/g, '<code>$1</code>');
 
@@ -532,7 +565,8 @@ function renderText(lines) {
 function cellHtml(file, key, src, editable) {
   if (!editable) return '<td class="fixed">' + inline(src) + '</td>';
   const v = cval(file, key, src, true);
-  return '<td><textarea data-k="' + key + '" class="' + (v.trim() ? 'filled' : '') + '" rows="1">'
+  const cls = v.trim() ? (isSkip(v) ? 'filled skip' : 'filled') : '';
+  return '<td><textarea data-k="' + key + '" class="' + cls + '" rows="1">'
        + esc(v) + '</textarea></td>';
 }
 function tableHtml(sh, b, bi) {
@@ -573,9 +607,11 @@ function render() {
   document.querySelectorAll('#main textarea').forEach(t => {
     const fit = () => { t.style.height = 'auto'; t.style.height = Math.max(26, t.scrollHeight) + 'px'; };
     fit();
+    t.addEventListener('focus', () => { lastCell = t; });
     t.addEventListener('input', () => {
       st(sh.file).v[t.dataset.k] = t.value;
       t.classList.toggle('filled', !!t.value.trim());
+      t.classList.toggle('skip', isSkip(t.value));
       fit(); save(); list(); redrawFigure(); pushSave(sh.file);
     });
   });
@@ -932,6 +968,16 @@ function loadMd(md) {
   for (const p of parts) n += loadOne(p.file, p.md);
   save(); return n;
 }
+document.getElementById('bSkip').onclick = () => {
+  if (!lastCell || !document.body.contains(lastCell)) {
+    ioMsg.textContent = '先に欄を押してから。'; return;
+  }
+  if (isSkip(lastCell.value)) { ioMsg.textContent = 'その欄には、もう印がある。'; return; }
+  lastCell.value = SKIP + lastCell.value.trim();
+  lastCell.dispatchEvent(new Event('input'));
+  lastCell.focus();
+  ioMsg.textContent = '印を入れた。なぜ要らないかを、印の後ろに一行書くこと。';
+};
 document.getElementById('bPaste').onclick = () => {
   const n = loadMd(io.value);
   ioMsg.textContent = n ? n + '枚を読み込んだ。' : '読み込めなかった（見出しかファイル名の目印が要る）。';
