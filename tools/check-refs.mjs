@@ -20,8 +20,10 @@ for (const f of readdirSync(DIR).filter(n => n.endsWith('.md'))){
   const body = readFileSync(join(DIR, f), 'utf8');
   // 閉じ括弧は原則ここで切るが、**開き括弧が先に在るときは URL の一部**として拾う。
   // Wikipedia の .../Guitar_Hero_(video_game) を切ってしまい、404 と誤って報告した（2026-08-21）
-  for (const m of body.matchAll(/https?:\/\/[^\s\]<>"'）」]+/g)){
-    let u = m[0].replace(/[.,、。]+$/, '');
+  // **アポストロフィは URL の一部**（.../Boghog's_bullet_hell_shmup_101）。
+  // 除いていたせいで途中で切れ、404 と誤って報告した（2026-08-21・二度目の同じ穴）
+  for (const m of body.matchAll(/https?:\/\/[^\s\]<>）」]+/g)){
+    let u = m[0].replace(/["'.,、。]+$/, '');
     while (u.endsWith(')') && (u.split('(').length - 1) < (u.split(')').length - 1)) u = u.slice(0, -1);
     const cut = u.indexOf(')');
     if (cut >= 0 && !u.slice(0, cut).includes('(')) u = u.slice(0, cut);
