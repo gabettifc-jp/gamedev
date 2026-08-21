@@ -2,8 +2,9 @@
 /* シートの照合器。三つを見る。
    1) tools/sheets.html の写し ↔ templates/sheets/ の本体
    2) genre/*.md の相場表の一行め ↔ 参照先のシートの問い（逐語）
-   3) **行き先が空の問いを数える。**シートは索引なので、
-      行き先が空＝**仕様書に入らなかった問い**である。
+   3) **行き先の無い問いを数える。**シートは索引なので、
+      行き先が空（または「仕様書に無い」と書いてある）＝
+      **仕様書に入らなかった問い**である。
 
    使い方：
      node tools/check-sheets.mjs                 テンプレート自体を見る
@@ -24,7 +25,7 @@ let bad = 0;
 if (ARG) {
   // ゲームのシートを見るとき。写しも相場表も無いので、3) だけ。
   // countBlank は関数宣言なので、ここから呼べる
-  countBlank(ARG, `行き先が空の問い（${ARG}）`);
+  countBlank(ARG, `行き先の無い問い（${ARG}）`);
   process.exit(0);
 }
 const ng = (...a) => { bad++; console.log('  ✗', ...a); };
@@ -105,25 +106,32 @@ function countBlank(dir, label) {
       const cells = l.split('|').slice(1, -1).map(c => c.trim());
       if (/^[\s:\-|]+$/.test(l.replace(/\|/g, '|'))) continue;
       const hdr = cells.map(c => c.replace(/\*\*/g, ''));
-      if (hdr[0] === '問い') { col = hdr.indexOf('行き先'); why = hdr.indexOf('根拠'); continue; }
+      if (hdr[0] === '問い') {
+        col = hdr.indexOf('行き先'); why = hdr.indexOf('根拠');
+        // **列が無いことを黙って飛ばさない。**列名を直し忘れた表は
+        // 「問い0」と出て、空欄が0件に見えてしまう
+        if (col < 0) { console.log(`  ？ ${f} に「行き先」の列が無い表がある（列名：${hdr.join('／')}）`); }
+        continue;
+      }
       if (col < 0 || !cells[0]) continue;
       if (/^[\s:\-]+$/.test(cells[0])) continue;
       t++;
       const v = (cells[col] || '').trim();
-      if (!v) b++;
-      else if (why >= 0 && !(cells[why] || '').trim()) w++;
+      // 空欄と、「仕様書に無い」と書いた欄は、同じもの。どちらも行き先が無い
+      if (!v || /仕様書に(は)?無い|仕様書に(は)?書かれていない/.test(v)) b++;
+      if (why >= 0 && !(cells[why] || '').trim()) w++;
     }
     if (t) per.push([f, t, b, w]);
     tot += t; blank += b; noWhy += w;
   }
   console.log(`\n${label}`);
   for (const [f, t, b, w] of per)
-    console.log(`  ${b === 0 && w === 0 ? '　' : '！'} ${f}  問い${t}／行き先が空 ${b}／根拠が空 ${w}`);
-  console.log(`  合計 問い${tot}／**行き先が空 ${blank}**（＝仕様書に入らなかった問い）／根拠が空 ${noWhy}`);
+    console.log(`  ${b === 0 && w === 0 ? '　' : '！'} ${f}  問い${t}／行き先が無い ${b}／根拠が空 ${w}`);
+  console.log(`  合計 問い${tot}／**行き先が無い ${blank}**（＝仕様書に入らなかった問い）／根拠が空 ${noWhy}`);
   return { tot, blank, noWhy };
 }
 
-countBlank(SHEETS, '行き先が空の問い（テンプレート自体。空で正しい）');
+countBlank(SHEETS, '行き先の無い問い（テンプレート自体。空で正しい）');
 
 console.log(bad ? `\nずれ ${bad} 件` : '\nずれなし');
 process.exit(bad ? 1 : 0);
