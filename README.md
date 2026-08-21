@@ -39,3 +39,10 @@
 8. `checklist.md` を眺め、後戻りが高い項目だけ先に埋める
 9. 見た目の見本から作る
 10. 感触が出たら、その場で `gamedev/friction.md` に生のまま書く
+
+## 道具
+
+| 走らせるもの | 何を見るか |
+|---|---|
+| `node tools/check-sheets.mjs` | シートの写しのずれ／ジャンルシートの一行めが本物の問いと合っているか |
+| `node tools/check-refs.mjs` | `references/` の URL が本当に開くか（**調べさせた出どころが幻でないか**） |
