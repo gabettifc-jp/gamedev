@@ -42,9 +42,15 @@ const qOf = f => {
     .filter(q => q && q !== '問い');
 };
 const strip = s => s.replace(/\*\*/g, '').trim();
-const gdir = join(SHEETS, 'genre');
-for (const g of readdirSync(gdir).filter(f => f.endsWith('.md') && f !== 'README.md')) {
-  const lines = readFileSync(join(gdir, g), 'utf8').split('\n');
+// **ジャンルシートと横断シートの両方を見る。**
+// across/ を作ったとき、照合器が見ていなかった（2026-08-21）。
+// 表が増えたのに検査が増えないと、**新しい表だけ黙って通る**
+const dirs = ['genre', 'across'].filter(d => existsSync(join(SHEETS, d)));
+const targets = dirs.flatMap(d =>
+  readdirSync(join(SHEETS, d)).filter(f => f.endsWith('.md') && f !== 'README.md')
+    .map(f => [d + '/' + f, join(SHEETS, d, f)]));
+for (const [g, gpath] of targets) {
+  const lines = readFileSync(gpath, 'utf8').split('\n');
   let n = 0, skipped = 0, inSoba = false;
   for (const l of lines) {
     if (/^##\s/.test(l)) inSoba = /相場/.test(l);
