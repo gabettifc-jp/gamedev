@@ -28,7 +28,13 @@ for (const f of readdirSync(DIR).filter(n => n.endsWith('.md'))){
   // 除いていたせいで途中で切れ、404 と誤って報告した（2026-08-21・二度目の同じ穴）
   for (const line of body.split('\n')){
    if (/^#{1,6}\s/.test(line)) dead = /開けなかった|読めなかった|取れなかった/.test(line);
-   for (const m of line.matchAll(/https?:\/\/[^\s\]<>）」]+/g)){
+   // **URLの終わりを、全角の括弧や読点でも切る。**
+   // 2026-08-21、`…/Mastery（開けず）` の全角開き括弧を URL に含めて 404 を出した。
+   // **これで三度目。三度とも「無い URL」ではなく、この正規表現の誤りだった。**
+   // **そして直した直後に四度目をやった** ── 半角の ' を除いて `Boghog's_…` を切った。
+   // **除く文字を足すたびに、正しい URL を切る危険が増える。**
+   // **半角の ' は URL に出る**（`…/Boghog's_bullet_hell_shmup_101`）。除いてはいけない
+   for (const m of line.matchAll(/https?:\/\/[^\s\]<>）（」「、。’]+/g)){
     let u = m[0].replace(/["'.,、。]+$/, '');
     while (u.endsWith(')') && (u.split('(').length - 1) < (u.split(')').length - 1)) u = u.slice(0, -1);
     const cut = u.indexOf(')');
