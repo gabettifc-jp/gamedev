@@ -20,6 +20,7 @@
 | `open.md` | 決めざるを得なかった点。承認があるものと無いものを分けて書く |
 | `templates/` | ゲーム側へ写すひな形 |
 | `templates/mihon.md` | 触って方向を決めてもらう見本の型。パッと試しに出すときに毎回見る |
+| `templates/playtest.md` | **触ってもらうときの相場。**段階8に入る前に見る（生は `references/playtest.md`） |
 | `templates/sheets/` | 段階3で埋めるシート。`00-kihon.md` から始める |
 | `templates/sheets/genre/` | ジャンルシート。そのジャンルを名乗ったら答えなければならないこと |
 | `tools/` | シートを埋める道具。`serve.mjs` で立ち上げるとファイルに保存される |
