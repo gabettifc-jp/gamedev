@@ -18,8 +18,13 @@ if (!existsSync(DIR)) { console.log('references/ が無い'); process.exit(0); }
 const urls = new Map();                       // url -> [file, ...]
 for (const f of readdirSync(DIR).filter(n => n.endsWith('.md'))){
   const body = readFileSync(join(DIR, f), 'utf8');
-  for (const m of body.matchAll(/https?:\/\/[^\s)\]<>"'）」]+/g)){
-    const u = m[0].replace(/[.,、。]+$/, '');
+  // 閉じ括弧は原則ここで切るが、**開き括弧が先に在るときは URL の一部**として拾う。
+  // Wikipedia の .../Guitar_Hero_(video_game) を切ってしまい、404 と誤って報告した（2026-08-21）
+  for (const m of body.matchAll(/https?:\/\/[^\s\]<>"'）」]+/g)){
+    let u = m[0].replace(/[.,、。]+$/, '');
+    while (u.endsWith(')') && (u.split('(').length - 1) < (u.split(')').length - 1)) u = u.slice(0, -1);
+    const cut = u.indexOf(')');
+    if (cut >= 0 && !u.slice(0, cut).includes('(')) u = u.slice(0, cut);
     if (!urls.has(u)) urls.set(u, []);
     urls.get(u).push(f);
   }
@@ -37,11 +42,19 @@ const check = async u => {
     return r.status;
   }catch(e){ return e.name === 'TimeoutError' ? '時間切れ' : '繋がらない'; }
 };
+// **「無い」と「見せてもらえない」を分ける。**
+// 403・429・5xx・時間切れは先方の都合で、こちらが直せない。ここで落とすと
+// **検査がいつも落ちるようになり、やがて誰も見なくなる。**
+// 落とすのは 404 と、名前が引けないもの＝**出どころが幻の疑いがあるものだけ**。
+const GHOST = st => st === 404 || st === 410 || st === '繋がらない';
 const rows = await Promise.all([...urls.keys()].map(async u => [u, await check(u)]));
+let gray = 0;
 for (const [u, st] of rows){
   const ok = typeof st === 'number' && st < 400;
-  if (!ok) bad++;
-  console.log(` ${ok?'○':'×'} ${String(st).padEnd(6)} ${u}   （${urls.get(u).join('/')}）`);
+  const ghost = GHOST(st);
+  if (ghost) bad++; else if (!ok) gray++;
+  console.log(` ${ok?'○':ghost?'×':'△'} ${String(st).padEnd(6)} ${u}   （${urls.get(u).join('/')}）`);
 }
-console.log(bad ? `\n開かない URL が ${bad} 件` : '\n全部開いた');
+console.log(`\n○ 開いた ${rows.length-bad-gray}／△ 見せてもらえない ${gray}（403・429・5xx・時間切れ。先方の都合）`);
+console.log(bad ? `**× 無い URL が ${bad} 件。出どころが幻の疑い**` : '**× 無い URL は0件**');
 process.exit(bad ? 1 : 0);
