@@ -20,6 +20,8 @@
 | `open.md` | 決めざるを得なかった点。承認があるものと無いものを分けて書く |
 | `templates/` | ゲーム側へ写すひな形 |
 | `templates/mihon.md` | 触って方向を決めてもらう見本の型。パッと試しに出すときに毎回見る |
+| `templates/tetsuki-pop.md` | **絵の手つき（ポップな見下ろし）の決まり九条とつまみ。**効かなかったことも残してある |
+| `templates/tetsuki-pop.html` | その走る版。写して、つまみだけ書き換えて使う |
 | `templates/sheets/` | 段階3で埋めるシート。`00-kihon.md` から始める |
 | `templates/sheets/genre/` | ジャンルシート。そのジャンルを名乗ったら答えなければならないこと |
 | `tools/` | シートを埋める道具。`serve.mjs` で立ち上げるとファイルに保存される |
@@ -37,7 +39,7 @@
 6. `gamedev/CLAUDE.md` を参照する一行を、ゲーム側の `CLAUDE.md` に書く
 7. `flow.md` の1と2（面白さの核、面白いと思う仮説）を `spec.md` の先頭に埋める
 8. `checklist.md` を眺め、後戻りが高い項目だけ先に埋める
-9. 見た目の見本から作る
+9. 見た目の見本から作る（**手つきを写すなら `templates/tetsuki-pop.md`。描いたら必ず撮って見る**）
 10. 感触が出たら、その場で `gamedev/friction.md` に生のまま書く
 
 ## 道具
