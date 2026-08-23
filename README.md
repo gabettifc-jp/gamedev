@@ -26,6 +26,7 @@
 | `tools/` | シートを埋める道具。`serve.mjs` で立ち上げるとファイルに保存される |
 | `tools/check-sheets.mjs` | **写しとシート、相場表と問いを照合する。**`node tools/check-sheets.mjs` |
 | `references/` | 参照元のゲームの調査結果 |
+| `observations/` | **他所の作り手が動いているところの生ログ。**整形しない。追記だけ |
 
 ## 新しいゲームを始めるときの手順
 
