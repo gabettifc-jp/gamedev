@@ -1,0 +1,40 @@
+# gamedev の検査。**道具は前から exit 1 を返していた。走らせる仕掛けが無かっただけ。**
+#
+# 二つに分ける。
+#   照合（check-sheets）… 網に触らない。速い。**これが関門。押すたびに走る**
+#   出どころ（check-refs）… 128件の URL を叩く。403・429 は先方の都合で、
+#     こちらの誤りではない。**関門にしない。**週に一度と、手で回したときだけ
+name: 検査
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '17 21 * * 0'      # 毎週月曜 06:17 JST（UTC 日曜 21:17）
+  workflow_dispatch:
+
+jobs:
+  照合:
+    # 写しのずれ／相場表の問い／行き先の空き／相場の前提
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: シートの照合
+        run: node tools/check-sheets.mjs
+
+  出どころ:
+    # **落ちても関門にしない。**先方が 403 を返すのはこちらの誤りではない。
+    # 数字を見るためだけに走らせる
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: 出どころの URL が開くか
+        run: node tools/check-refs.mjs

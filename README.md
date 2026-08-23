@@ -46,5 +46,5 @@
 
 | 走らせるもの | 何を見るか |
 |---|---|
-| `node tools/check-sheets.mjs` | シートの写しのずれ／ジャンルシートの一行めが本物の問いと合っているか |
-| `node tools/check-refs.mjs` | `references/` の URL が本当に開くか（**調べさせた出どころが幻でないか**） |
+| `node tools/check-sheets.mjs` | シートの写しのずれ／ジャンルシートの一行めが本物の問いと合っているか／行き先の空き／**相場の前提の空き**。<br>**押すたびに CI で走る**（`.github/workflows/check.yml`） |
+| `node tools/check-refs.mjs` | `references/` の URL が本当に開くか（**調べさせた出どころが幻でないか**）。<br>**週に一度だけ CI で走る。落ちても関門にしない**（403 は先方の都合） |

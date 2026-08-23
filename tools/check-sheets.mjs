@@ -5,6 +5,10 @@
    3) **行き先の無い問いを数える。**シートは索引なので、
       行き先が空（または「仕様書に無い」と書いてある）＝
       **仕様書に入らなかった問い**である。
+   4) **相場表の「前提」「こちらで成り立つか」の空きを数える。**
+      相場が成り立つのは、その相場が前提にしている条件が成り立つ場所だけ
+      （flow.md「相場には前提がある（決）」）。
+      **「確かめていない」は、空とは別に数える。**書いてあるほうが、書いていないより良い。
 
    使い方：
      node tools/check-sheets.mjs                 テンプレート自体を見る
@@ -12,7 +16,7 @@
        （例： node ../gamedev/tools/check-sheets.mjs sheets ）
 
    1) 2) が合っていれば 0、ずれていれば 1 を返す。
-   **3) は数えるだけで、落とさない。**空いていること自体は誤りではない。
+   **3) 4) は数えるだけで、落とさない。**空いていること自体は誤りではない。
    誤りなのは、空いているのに気づかないまま先へ進むことである。 */
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -130,6 +134,45 @@ function countBlank(dir, label) {
   console.log(`  合計 問い${tot}／**行き先が無い ${blank}**（＝仕様書に入らなかった問い）／根拠が空 ${noWhy}`);
   return { tot, blank, noWhy };
 }
+
+/* --- 4) 相場表の「前提」と「こちらで成り立つか」 ----------------------- */
+// **相場が悪いのではない。前提を確かめなかった**（flow.md「相場には前提がある（決）」）。
+// 2026-08-22 の回数ゲートと、makeplay の8時間早送りは、どちらもこれで落ちた。
+// **数えるだけで落とさない。**ただし数が見えていれば、使う瞬間に空だと気づける。
+function countSoba(targets) {
+  console.log('\n相場の前提（数えるだけ。空でも落とさない）');
+  let tot = 0, noPre = 0, noHold = 0, unsure = 0;
+  for (const [g, gpath] of targets) {
+    const lines = readFileSync(gpath, 'utf8').split('\n');
+    let pre = -1, hold = -1, t = 0, p0 = 0, h0 = 0, u = 0, missingCol = false;
+    for (const l of lines) {
+      if (!/^\|/.test(l)) { pre = hold = -1; continue; }     // 表が切れたら見失う
+      if (/^\|[\s:\-|]+\|$/.test(l)) continue;
+      const cells = l.split('|').slice(1, -1).map(c => c.replace(/\*\*/g, '').trim());
+      if (/どのシート/.test(cells[0] || '')) {                // 見出しの行
+        pre = cells.indexOf('前提');
+        hold = cells.findIndex(c => /こちらで成り立つか/.test(c));
+        if (pre < 0 || hold < 0) missingCol = true;
+        continue;
+      }
+      if (!/^\d\d「/.test(cells[0] || '')) continue;         // 相場の行だけ
+      t++;
+      if (pre  < 0 || !(cells[pre]  || '').trim()) p0++;
+      const v = hold < 0 ? '' : (cells[hold] || '').trim();
+      if (!v) h0++;
+      else if (/確かめていない/.test(v)) u++;
+    }
+    if (!t) continue;
+    tot += t; noPre += p0; noHold += h0; unsure += u;
+    console.log(`  ${p0 === 0 && h0 === 0 ? '　' : '！'} ${g}  相場${t}／`
+      + `前提が空 ${p0}／成り立つかが空 ${h0}／うち確かめていない ${u}`
+      + (missingCol ? '  ← **列そのものが無い**' : ''));
+  }
+  console.log(`  合計 相場${tot}／**前提が空 ${noPre}**／成り立つかが空 ${noHold}`
+    + `／確かめていないと書いてある ${unsure}`);
+  return { tot, noPre, noHold, unsure };
+}
+countSoba(targets);
 
 countBlank(SHEETS, '行き先の無い問い（テンプレート自体。空で正しい）');
 
