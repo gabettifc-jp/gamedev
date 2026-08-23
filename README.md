@@ -22,6 +22,7 @@
 | `templates/mihon.md` | 触って方向を決めてもらう見本の型。パッと試しに出すときに毎回見る |
 | `templates/tetsuki-pop.md` | **絵の手つき（ポップな見下ろし）の決まり九条とつまみ。**効かなかったことも残してある |
 | `templates/tetsuki-pop.html` | その走る版。写して、つまみだけ書き換えて使う |
+| `templates/sozai.md` | **絵の素材をどう作るか。**この環境に在る道具と無い道具、Canva から取る通し方（**通して確かめた**） |
 | `templates/sheets/` | 段階3で埋めるシート。`00-kihon.md` から始める |
 | `templates/sheets/genre/` | ジャンルシート。そのジャンルを名乗ったら答えなければならないこと |
 | `tools/` | シートを埋める道具。`serve.mjs` で立ち上げるとファイルに保存される |
