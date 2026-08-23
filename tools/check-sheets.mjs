@@ -1,17 +1,37 @@
 #!/usr/bin/env node
-/* シートの照合器。二つを見る。
+/* シートの照合器。三つを見る。
    1) tools/sheets.html の写し ↔ templates/sheets/ の本体
    2) genre/*.md の相場表の一行め ↔ 参照先のシートの問い（逐語）
+   3) **行き先の無い問いを数える。**シートは索引なので、
+      行き先が空（または「仕様書に無い」と書いてある）＝
+      **仕様書に入らなかった問い**である。
+   4) **相場表の「前提」「こちらで成り立つか」の空きを数える。**
+      相場が成り立つのは、その相場が前提にしている条件が成り立つ場所だけ
+      （flow.md「相場には前提がある（決）」）。
+      **「確かめていない」は、空とは別に数える。**書いてあるほうが、書いていないより良い。
 
-   使い方： node tools/check-sheets.mjs
-   合っていれば 0、ずれていれば 1 を返す。 */
+   使い方：
+     node tools/check-sheets.mjs                 テンプレート自体を見る
+     node tools/check-sheets.mjs <シートの置き場>  ゲームのシートの 3) だけを見る
+       （例： node ../gamedev/tools/check-sheets.mjs sheets ）
+
+   1) 2) が合っていれば 0、ずれていれば 1 を返す。
+   **3) 4) は数えるだけで、落とさない。**空いていること自体は誤りではない。
+   誤りなのは、空いているのに気づかないまま先へ進むことである。 */
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SHEETS = join(ROOT, 'templates/sheets');
+const ARG = process.argv[2] || null;   // ゲームのシートの置き場
 let bad = 0;
+if (ARG) {
+  // ゲームのシートを見るとき。写しも相場表も無いので、3) だけ。
+  // countBlank は関数宣言なので、ここから呼べる
+  countBlank(ARG, `行き先の無い問い（${ARG}）`);
+  process.exit(0);
+}
 const ng = (...a) => { bad++; console.log('  ✗', ...a); };
 const ok = (...a) => console.log('  ✓', ...a);
 
@@ -42,9 +62,15 @@ const qOf = f => {
     .filter(q => q && q !== '問い');
 };
 const strip = s => s.replace(/\*\*/g, '').trim();
-const gdir = join(SHEETS, 'genre');
-for (const g of readdirSync(gdir).filter(f => f.endsWith('.md') && f !== 'README.md')) {
-  const lines = readFileSync(join(gdir, g), 'utf8').split('\n');
+// **ジャンルシートと横断シートの両方を見る。**
+// across/ を作ったとき、照合器が見ていなかった（2026-08-21）。
+// 表が増えたのに検査が増えないと、**新しい表だけ黙って通る**
+const dirs = ['genre', 'across'].filter(d => existsSync(join(SHEETS, d)));
+const targets = dirs.flatMap(d =>
+  readdirSync(join(SHEETS, d)).filter(f => f.endsWith('.md') && f !== 'README.md')
+    .map(f => [d + '/' + f, join(SHEETS, d, f)]));
+for (const [g, gpath] of targets) {
+  const lines = readFileSync(gpath, 'utf8').split('\n');
   let n = 0, skipped = 0, inSoba = false;
   for (const l of lines) {
     if (/^##\s/.test(l)) inSoba = /相場/.test(l);
@@ -66,6 +92,89 @@ for (const g of readdirSync(gdir).filter(f => f.endsWith('.md') && f !== 'README
   }
   if (n) ok(`${g}（${n}行を照合${skipped ? `／シートを指していない行 ${skipped}` : ''}）`);
 }
+
+/* --- 3) 行き先が空の問い ---------------------------------------------- */
+// シートは索引で、答えの置き場ではない。
+// **行き先の欄が空の行は、仕様書のどこにも入らなかった問いである。**
+// これを機械で数えられることが、シートを残す理由そのもの
+//（templates/sheets/README.md「シートは索引であって、答えの置き場ではない」）。
+function countBlank(dir, label) {
+  const fs = readdirSync(dir).filter(f => /^\d\d-.*\.md$/.test(f)).sort();
+  let tot = 0, blank = 0, noWhy = 0;
+  const per = [];
+  for (const f of fs) {
+    const lines = readFileSync(join(dir, f), 'utf8').split('\n');
+    let col = -1, why = -1, t = 0, b = 0, w = 0;
+    for (const l of lines) {
+      if (!/^\|/.test(l)) { col = -1; continue; }          // 表が切れたら見失う
+      const cells = l.split('|').slice(1, -1).map(c => c.trim());
+      if (/^[\s:\-|]+$/.test(l.replace(/\|/g, '|'))) continue;
+      const hdr = cells.map(c => c.replace(/\*\*/g, ''));
+      if (hdr[0] === '問い') {
+        col = hdr.indexOf('行き先'); why = hdr.indexOf('根拠');
+        // **列が無いことを黙って飛ばさない。**列名を直し忘れた表は
+        // 「問い0」と出て、空欄が0件に見えてしまう
+        if (col < 0) { console.log(`  ？ ${f} に「行き先」の列が無い表がある（列名：${hdr.join('／')}）`); }
+        continue;
+      }
+      if (col < 0 || !cells[0]) continue;
+      if (/^[\s:\-]+$/.test(cells[0])) continue;
+      t++;
+      const v = (cells[col] || '').trim();
+      // 空欄と、「仕様書に無い」と書いた欄は、同じもの。どちらも行き先が無い
+      if (!v || /仕様書に(は)?無い|仕様書に(は)?書かれていない/.test(v)) b++;
+      if (why >= 0 && !(cells[why] || '').trim()) w++;
+    }
+    if (t) per.push([f, t, b, w]);
+    tot += t; blank += b; noWhy += w;
+  }
+  console.log(`\n${label}`);
+  for (const [f, t, b, w] of per)
+    console.log(`  ${b === 0 && w === 0 ? '　' : '！'} ${f}  問い${t}／行き先が無い ${b}／根拠が空 ${w}`);
+  console.log(`  合計 問い${tot}／**行き先が無い ${blank}**（＝仕様書に入らなかった問い）／根拠が空 ${noWhy}`);
+  return { tot, blank, noWhy };
+}
+
+/* --- 4) 相場表の「前提」と「こちらで成り立つか」 ----------------------- */
+// **相場が悪いのではない。前提を確かめなかった**（flow.md「相場には前提がある（決）」）。
+// 2026-08-22 の回数ゲートと、makeplay の8時間早送りは、どちらもこれで落ちた。
+// **数えるだけで落とさない。**ただし数が見えていれば、使う瞬間に空だと気づける。
+function countSoba(targets) {
+  console.log('\n相場の前提（数えるだけ。空でも落とさない）');
+  let tot = 0, noPre = 0, noHold = 0, unsure = 0;
+  for (const [g, gpath] of targets) {
+    const lines = readFileSync(gpath, 'utf8').split('\n');
+    let pre = -1, hold = -1, t = 0, p0 = 0, h0 = 0, u = 0, missingCol = false;
+    for (const l of lines) {
+      if (!/^\|/.test(l)) { pre = hold = -1; continue; }     // 表が切れたら見失う
+      if (/^\|[\s:\-|]+\|$/.test(l)) continue;
+      const cells = l.split('|').slice(1, -1).map(c => c.replace(/\*\*/g, '').trim());
+      if (/どのシート/.test(cells[0] || '')) {                // 見出しの行
+        pre = cells.indexOf('前提');
+        hold = cells.findIndex(c => /こちらで成り立つか/.test(c));
+        if (pre < 0 || hold < 0) missingCol = true;
+        continue;
+      }
+      if (!/^\d\d「/.test(cells[0] || '')) continue;         // 相場の行だけ
+      t++;
+      if (pre  < 0 || !(cells[pre]  || '').trim()) p0++;
+      const v = hold < 0 ? '' : (cells[hold] || '').trim();
+      if (!v) h0++;
+      else if (/確かめていない/.test(v)) u++;
+    }
+    if (!t) continue;
+    tot += t; noPre += p0; noHold += h0; unsure += u;
+    console.log(`  ${p0 === 0 && h0 === 0 ? '　' : '！'} ${g}  相場${t}／`
+      + `前提が空 ${p0}／成り立つかが空 ${h0}／うち確かめていない ${u}`
+      + (missingCol ? '  ← **列そのものが無い**' : ''));
+  }
+  console.log(`  合計 相場${tot}／**前提が空 ${noPre}**／成り立つかが空 ${noHold}`
+    + `／確かめていないと書いてある ${unsure}`);
+  return { tot, noPre, noHold, unsure };
+}
+countSoba(targets);
+
+countBlank(SHEETS, '行き先の無い問い（テンプレート自体。空で正しい）');
 
 console.log(bad ? `\nずれ ${bad} 件` : '\nずれなし');
 process.exit(bad ? 1 : 0);

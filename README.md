@@ -20,6 +20,7 @@
 | `open.md` | 決めざるを得なかった点。承認があるものと無いものを分けて書く |
 | `templates/` | ゲーム側へ写すひな形 |
 | `templates/mihon.md` | 触って方向を決めてもらう見本の型。パッと試しに出すときに毎回見る |
+| `templates/playtest.md` | **触ってもらうときの相場。**段階8に入る前に見る（生は `references/playtest.md`） |
 | `templates/tetsuki-pop.md` | **絵の手つき（ポップな見下ろし）の決まり九条とつまみ。**効かなかったことも残してある |
 | `templates/tetsuki-pop.html` | その走る版。写して、つまみだけ書き換えて使う |
 | `templates/kiku.md` | **見落としてはいけない質問の六種類。**〔**案。承認待ち**〕 |
@@ -29,6 +30,7 @@
 | `tools/` | シートを埋める道具。`serve.mjs` で立ち上げるとファイルに保存される |
 | `tools/check-sheets.mjs` | **写しとシート、相場表と問いを照合する。**`node tools/check-sheets.mjs` |
 | `references/` | 参照元のゲームの調査結果 |
+| `observations/` | **他所の作り手が動いているところの生ログ。**整形しない。追記だけ |
 
 ## 新しいゲームを始めるときの手順
 
@@ -48,5 +50,5 @@
 
 | 走らせるもの | 何を見るか |
 |---|---|
-| `node tools/check-sheets.mjs` | シートの写しのずれ／ジャンルシートの一行めが本物の問いと合っているか |
-| `node tools/check-refs.mjs` | `references/` の URL が本当に開くか（**調べさせた出どころが幻でないか**） |
+| `node tools/check-sheets.mjs` | シートの写しのずれ／ジャンルシートの一行めが本物の問いと合っているか／行き先の空き／**相場の前提の空き**。<br>**押すたびに CI で走る**（`.github/workflows/check.yml`） |
+| `node tools/check-refs.mjs` | `references/` の URL が本当に開くか（**調べさせた出どころが幻でないか**）。<br>**週に一度だけ CI で走る。落ちても関門にしない**（403 は先方の都合） |
