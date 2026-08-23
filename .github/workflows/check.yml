@@ -14,7 +14,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  照合:
+  sheets:
+    name: 照合
     # 写しのずれ／相場表の問い／行き先の空き／相場の前提
     runs-on: ubuntu-latest
     steps:
@@ -25,7 +26,8 @@ jobs:
       - name: シートの照合
         run: node tools/check-sheets.mjs
 
-  出どころ:
+  refs:
+    name: 出どころ
     # **落ちても関門にしない。**先方が 403 を返すのはこちらの誤りではない。
     # 数字を見るためだけに走らせる
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
