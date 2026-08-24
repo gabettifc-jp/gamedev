@@ -1,0 +1,207 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>手つき：ポップな見下ろし ── 写して使う土台</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#12141a;color:#eef1f5;
+     font:14px/1.6 system-ui,-apple-system,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif}
+header{padding:14px 20px;border-bottom:1px solid #262b35}
+h1{margin:0 0 3px;font-size:15px}
+header p{margin:0;font-size:12px;color:#9aa4b2}
+canvas{display:block;width:100%;max-width:940px;margin:14px auto 0;
+       border-radius:16px;border:1px solid #262b35}
+footer{padding:14px 20px 26px;font-size:12px;color:#79828f;max-width:80ch}
+b{color:#eef1f5}
+</style>
+<header>
+  <h1>手つき：ポップな見下ろし ── 写して使う土台</h1>
+  <p>決まりは <b>templates/tetsuki-pop.md</b>。ここは走る版。<b>つまみは全部いちばん上にある。</b>
+     ゲームの中身は入れない（形は全部ただの塊）。</p>
+</header>
+<canvas id="c"></canvas>
+<footer>
+  <b>下の段は、決まり2と4の証拠。</b>左＝丸から切り出した上辺（ドームに見える）／
+  中＝上辺を直線で引いた（平らに見える）／右＝直線だが帯に輪郭を付けた（太い黒い棒に見える）。<br>
+  <b>この三つを並べたまま残しておく。</b>次に同じ間違いをしたとき、ここを見れば分かる。
+</footer>
+<script>
+/* ══════════════════════════════════════════════════════
+   つまみ ── 数値はここだけ。下では書かない
+   ══════════════════════════════════════════════════════ */
+const OUT       = '#1a2028';   /* 輪郭の色。明るくすると柔らかく、暗くすると硬い */
+const LW        = 0.036;       /* 輪郭の太さ／基準の大きさ */
+const SHEEN     = 0.26;        /* 照りの濃さ */
+const SHEEN_H   = 0.30;        /* 照りの高さ／面の高さ */
+const SHEEN_Y   = -0.42;       /* 照りの位置／面の高さ（負が上） */
+const SHADOW    = 0.26;        /* 足元の影の濃さ */
+const SHADOW_W  = 0.90;        /* 影の横幅／塊の横幅 */
+const SHADOW_H  = 0.26;        /* 影の高さ／塊の横幅 */
+const RING      = 0.55;        /* 足元の白い輪の濃さ */
+const RING_LW   = 0.10;        /* 白い輪の太さ／塊の横幅 */
+const BOB_A     = 0.5;         /* 上下の幅／基準の大きさ */
+const BOB_HZ    = 2.2;         /* 上下の速さ（ラジアン毎秒） */
+const DARK_K    = 0.72;        /* 暗い側の色を作る倍率（明るい色に掛ける） */
+const TWO_Y     = 0.74;        /* 二色目の境目の位置／塊の高さ。直線で切ると半分沈んで見える */
+const TWO_RX    = 1.20;        /* 二色目の楕円の横幅／塊の横幅 */
+const TWO_RY    = 0.86;        /* 二色目の楕円の高さ／塊の横幅 */
+const SHADOW_RGB= '8,34,52';   /* 影の色。真っ黒にしない */
+
+/* 見本を並べる位置のつまみ */
+const ROW1_Y = 0.36, ROW2_Y = 0.74, PAD = 0.08;
+
+/* ══════════════════════════════════════════════════════
+   下ごしらえ
+   ══════════════════════════════════════════════════════ */
+const CV=document.getElementById('c'); const g=CV.getContext('2d');
+let W=940,H=470;
+function fit(){ W=Math.min(940,CV.clientWidth||940); H=Math.round(W*0.50);
+  CV.width=W*2; CV.height=H*2; g.setTransform(2,0,0,2,0,0); }
+addEventListener('resize',fit); fit();
+
+/* 明るい色から暗い側を作る。要素ごとに二色、はこれで足りる */
+function dark(hex,k=DARK_K){
+  const n=parseInt(hex.slice(1),16);
+  const r=Math.round((n>>16&255)*k), gr=Math.round((n>>8&255)*k), b=Math.round((n&255)*k);
+  return `rgb(${r},${gr},${b})`;
+}
+
+/* ══════════════════════════════════════════════════════
+   道具 ── 写すのはここから下
+   ══════════════════════════════════════════════════════ */
+
+/* 楕円。fill を塗り、lw があれば輪郭を引く */
+function el(x,y,rx,ry,fill,lw){
+  g.beginPath(); g.ellipse(x,y,rx,ry,0,0,7);
+  g.fillStyle=fill; g.fill();
+  if(lw){ g.strokeStyle=OUT; g.lineWidth=lw; g.stroke(); }
+}
+
+/* 足元。暗い楕円の影と、白い輪。群れの中で自分を見失わないための輪 */
+function foot(x,y,r){
+  g.beginPath(); g.ellipse(x,y,r*SHADOW_W,r*SHADOW_H,0,0,7);
+  g.fillStyle=`rgba(${SHADOW_RGB},${SHADOW})`; g.fill();
+  g.beginPath(); g.ellipse(x,y,r*SHADOW_W,r*SHADOW_H,0,0,7);
+  g.strokeStyle=`rgba(255,255,255,${RING})`; g.lineWidth=r*RING_LW; g.stroke();
+}
+
+/* 照り。面の形に沿わせる。四角で乗せるとシールに見える */
+function sheen(x,y,rx,ry){
+  g.beginPath(); g.ellipse(x,y+ry*SHEEN_Y,rx*0.62,ry*SHEEN_H,0,0,7);
+  g.fillStyle=`rgba(255,255,255,${SHEEN})`; g.fill();
+}
+
+/* ゆっくり上下する。止まっていると死んで見える */
+function bob(t,s){ return Math.sin(t*BOB_HZ)*s*BOB_A; }
+
+/* 塊ひとつ。決まり1・3・5・6・7・9 が全部ここに入っている */
+function lump(x,y,s,color,t,face=true){
+  const r=s, lw=s*LW*2;
+  foot(x,y+s*0.92,r);
+  const dy=bob(t,s);
+  g.save(); g.translate(0,dy);
+  el(x,y,r,r*1.02,color,lw);                       /* 1 楕円だけ・3 輪郭は外形に一本 */
+  g.save();
+  g.beginPath(); g.ellipse(x,y,r,r*1.02,0,0,7); g.clip();
+  g.beginPath(); g.ellipse(x,y+r*TWO_Y,r*TWO_RX,r*TWO_RY,0,0,7);
+  g.fillStyle=dark(color); g.fill();               /* 7 要素ごとに二色。境目は曲げる */
+  g.restore();
+  el(x,y,r,r*1.02,'transparent',lw);
+  sheen(x,y,r,r*1.02);                             /* 5 照りは一枚だけ */
+  if(face){                                        /* 9 顔をつける */
+    [-0.36,0.36].forEach(o=>{
+      el(x+r*o,y+r*0.06,r*0.16,r*0.18,'#fff',0);
+      el(x+r*o,y+r*0.09,r*0.09,r*0.10,OUT,0); });
+  }
+  g.restore();
+}
+
+/* 平らな面を持つ塊。決まり2＝上辺は直線で引く。決まり4＝帯に輪郭を付けない */
+function slab(x,y,s,body,band,t,opt){
+  const r=s, lw=s*LW*2, dy=bob(t,s);
+  foot(x,y+s*0.86,r);
+  g.save(); g.translate(0,dy);
+  g.lineJoin='round'; g.lineCap='round';
+  g.beginPath();
+  if(opt.domed){                                   /* 丸から切り出す＝ドームに見える */
+    g.moveTo(x-r,y-r*0.28);
+    g.quadraticCurveTo(x,y-r*0.86,x+r,y-r*0.28);
+  }else{
+    g.moveTo(x-r,y-r*0.28); g.lineTo(x+r,y-r*0.28); /* 直線で引く＝平らに見える */
+  }
+  g.quadraticCurveTo(x+r*1.04,y+r*0.40,x+r*0.70,y+r*0.72);
+  g.quadraticCurveTo(x,y+r*0.98,x-r*0.60,y+r*0.72);
+  g.quadraticCurveTo(x-r*1.02,y+r*0.42,x-r,y-r*0.28);
+  g.closePath();
+  g.fillStyle=body; g.fill();
+  g.save(); g.clip();
+  g.fillStyle=dark(body); g.fillRect(x-r*1.2,y+r*0.22,r*2.4,r*2);
+  g.fillStyle=band;       g.fillRect(x-r*1.2,y-r*0.30,r*2.4,r*0.42); /* 帯は中に敷く */
+  g.restore();
+  g.strokeStyle=OUT; g.lineWidth=lw; g.stroke();
+  if(opt.bandOutline){                             /* やってはいけないほう */
+    g.beginPath(); g.rect(x-r,y-r*0.30,r*2,r*0.42);
+    g.strokeStyle=OUT; g.lineWidth=lw; g.stroke();
+  }
+  g.restore();
+}
+
+/* 名札。読ませたい文字は、塊の外に白い板で出す */
+function plate(x,y,s,text,sub){
+  g.font=`700 ${s*0.40}px system-ui,"Hiragino Kaku Gothic ProN",sans-serif`;
+  let tw=g.measureText(text).width;
+  if(sub){ g.font=`${s*0.28}px system-ui,sans-serif`;
+           tw=Math.max(tw,g.measureText(sub).width);
+           g.font=`700 ${s*0.40}px system-ui,"Hiragino Kaku Gothic ProN",sans-serif`; }
+  const pw=tw+s*0.70, ph=s*(sub?1.05:0.62);
+  g.beginPath(); g.roundRect(x-pw/2,y-ph/2,pw,ph,ph*0.5);
+  g.fillStyle='#fff8e8'; g.fill(); g.strokeStyle=OUT; g.lineWidth=s*LW*1.6; g.stroke();
+  g.fillStyle='#2a3038'; g.textAlign='center'; g.textBaseline='middle';
+  g.fillText(text,x,y-(sub?s*0.20:0));
+  if(sub){ g.font=`${s*0.28}px system-ui,sans-serif`; g.fillStyle='#8a939e';
+           g.fillText(sub,x,y+s*0.26); }
+}
+
+/* 押しボタン。丸・太い輪郭・上の照り */
+function button(x,y,s,color,text){
+  foot(x,y+s*0.96,s*0.9);
+  el(x,y,s,s,color,s*LW*2.4);
+  sheen(x,y,s,s);
+  g.font=`700 ${s*0.46}px system-ui,"Hiragino Kaku Gothic ProN",sans-serif`;
+  g.fillStyle='#fff'; g.textAlign='center'; g.textBaseline='middle';
+  g.fillText(text,x,y+s*0.04);
+}
+
+/* ══════════════════════════════════════════════════════
+   並べて見せる
+   ══════════════════════════════════════════════════════ */
+const PAL=['#f2504c','#f0a33c','#5fc45c','#4fb8e8','#a97ce0'];
+
+function frame(t){
+  const grd=g.createLinearGradient(0,0,0,H);
+  grd.addColorStop(0,'#2fb2d8'); grd.addColorStop(1,'#1d7fa8');
+  g.fillStyle=grd; g.fillRect(0,0,W,H);
+
+  const s=W*0.042, y1=H*ROW1_Y;
+  PAL.forEach((c,i)=>{
+    const x=W*PAD + (W*(1-PAD*2))*(i/(PAL.length-1));
+    lump(x,y1,s*(i===2?1.28:1),c,t+i*0.6);
+  });
+  plate(W*0.5,y1-s*2.5,s*0.9,'塊は楕円だけ','照り一枚／足元に影と輪');
+
+  const y2=H*ROW2_Y, s2=W*0.052;
+  const xs=[W*0.20,W*0.40,W*0.60];
+  slab(xs[0],y2,s2,'#e2703c','#ffd98a',t,      {domed:true , bandOutline:false});
+  slab(xs[1],y2,s2,'#e2703c','#ffd98a',t+0.5,  {domed:false, bandOutline:false});
+  slab(xs[2],y2,s2,'#e2703c','#ffd98a',t+1.0,  {domed:false, bandOutline:true });
+  g.font=`${s2*0.34}px system-ui,"Hiragino Kaku Gothic ProN",sans-serif`;
+  g.fillStyle='rgba(255,255,255,.92)'; g.textAlign='center'; g.textBaseline='middle';
+  ['丸から切り出す','直線で引く','帯に輪郭を付ける'].forEach((lab,i)=>
+    g.fillText(lab,xs[i],y2+s2*1.6));
+
+  button(W*0.84,y2-s2*0.5,s2*0.72,'#f0a33c','出す');
+}
+
+let t0=null;
+function loop(ts){ if(t0===null) t0=ts; frame((ts-t0)/1000); requestAnimationFrame(loop); }
+requestAnimationFrame(loop);
+</script>

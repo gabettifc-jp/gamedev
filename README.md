@@ -21,7 +21,11 @@
 | `templates/` | ゲーム側へ写すひな形 |
 | `templates/mihon.md` | 触って方向を決めてもらう見本の型。パッと試しに出すときに毎回見る |
 | `templates/playtest.md` | **触ってもらうときの相場。**段階8に入る前に見る（生は `references/playtest.md`） |
-| `templates/sozai-list.md` | **素材の一覧の型。**段階2-c で写して、ゲーム側の `sozai.md` にする |
+| `templates/tetsuki-pop.md` | **絵の手つき（ポップな見下ろし）の決まり九条とつまみ。**効かなかったことも残してある |
+| `templates/tetsuki-pop.html` | その走る版。写して、つまみだけ書き換えて使う |
+| `templates/kiku.md` | **見落としてはいけない質問の六種類。**〔**案。承認待ち**〕 |
+| `templates/sozai-list.md` | **何の素材が要るか。**段階2-c で写して、ゲーム側の `sozai.md` にする |
+| `templates/sozai.md` | **その素材をどう作るか。**この環境に在る道具と無い道具、Canva から取る通し方（**通して確かめた**） |
 | `templates/sheets/` | 段階3で埋めるシート。`00-kihon.md` から始める |
 | `templates/sheets/genre/` | ジャンルシート。そのジャンルを名乗ったら答えなければならないこと |
 | `tools/` | シートを埋める道具。`serve.mjs` で立ち上げるとファイルに保存される |
@@ -40,7 +44,7 @@
 6. `gamedev/CLAUDE.md` を参照する一行を、ゲーム側の `CLAUDE.md` に書く
 7. `flow.md` の1と2（面白さの核、面白いと思う仮説）を `spec.md` の先頭に埋める
 8. `checklist.md` を眺め、後戻りが高い項目だけ先に埋める
-9. 見た目の見本から作る
+9. 見た目の見本から作る（**手つきを写すなら `templates/tetsuki-pop.md`。描いたら必ず撮って見る**）
 10. 感触が出たら、その場で `gamedev/friction.md` に生のまま書く
 
 ## 道具
