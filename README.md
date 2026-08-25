@@ -24,7 +24,8 @@
 | `templates/tetsuki-pop.md` | **絵の手つき（ポップな見下ろし）の決まり九条とつまみ。**効かなかったことも残してある |
 | `templates/tetsuki-pop.html` | その走る版。写して、つまみだけ書き換えて使う |
 | `templates/kiku.md` | **見落としてはいけない質問の六種類。**〔**案。承認待ち**〕 |
-| `templates/sozai.md` | **絵の素材をどう作るか。**この環境に在る道具と無い道具、Canva から取る通し方（**通して確かめた**） |
+| `templates/sozai-list.md` | **何の素材が要るか。**段階2-c で写して、ゲーム側の `sozai.md` にする |
+| `templates/sozai.md` | **その素材をどう作るか。**この環境に在る道具と無い道具、Canva から取る通し方（**通して確かめた**） |
 | `templates/sheets/` | 段階3で埋めるシート。`00-kihon.md` から始める |
 | `templates/sheets/genre/` | ジャンルシート。そのジャンルを名乗ったら答えなければならないこと |
 | `tools/` | シートを埋める道具。`serve.mjs` で立ち上げるとファイルに保存される |
